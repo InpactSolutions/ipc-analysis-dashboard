@@ -367,39 +367,47 @@
             
             const total = data.reduce((sum, item) => sum + item[dataKey], 0);
             
-            return e('div', { className: 'space-y-3' }, [
-                e('div', { key: 'legend', className: 'grid grid-cols-1 gap-2' },
+            return e('div', { className: 'space-y-4' }, [
+                // Visual pie representation
+                e('div', { key: 'visual', className: 'flex rounded-full overflow-hidden h-8 bg-gray-200 shadow-inner' },
+                    data.map((item, index) => {
+                        const percentage = (item[dataKey] / total) * 100;
+                        return e('div', {
+                            key: index,
+                            className: 'transition-all duration-700 hover:brightness-110',
+                            style: { 
+                                width: `${percentage}%`,
+                                backgroundColor: colors[index % colors.length]
+                            },
+                            title: `${item[nameKey]}: ${item[dataKey].toLocaleString()} (${percentage.toFixed(1)}%)`
+                        });
+                    })
+                ),
+                
+                // Legend
+                e('div', { key: 'legend', className: 'grid grid-cols-1 gap-3' },
                     data.map((item, index) => {
                         const percentage = ((item[dataKey] / total) * 100).toFixed(1);
-                        return e('div', { key: index, className: 'flex items-center justify-between' }, [
-                            e('div', { key: 'info', className: 'flex items-center gap-2' }, [
+                        return e('div', { key: index, className: 'flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors' }, [
+                            e('div', { key: 'info', className: 'flex items-center gap-3' }, [
                                 e('div', { 
                                     key: 'color', 
-                                    className: 'w-4 h-4 rounded-full',
+                                    className: 'w-4 h-4 rounded-full shadow-sm',
                                     style: { backgroundColor: colors[index % colors.length] }
                                 }),
-                                e('span', { key: 'name', className: 'text-sm font-medium' }, item[nameKey])
+                                e('span', { key: 'name', className: 'text-sm font-medium text-gray-700' }, item[nameKey])
                             ]),
                             e('div', { key: 'stats', className: 'text-right' }, [
-                                e('div', { key: 'value', className: 'text-sm font-bold' }, item[dataKey].toLocaleString()),
+                                e('div', { key: 'value', className: 'text-sm font-bold text-gray-900' }, item[dataKey].toLocaleString()),
                                 e('div', { key: 'percentage', className: 'text-xs text-gray-500' }, `${percentage}%`)
                             ])
                         ]);
                     })
                 ),
-                e('div', { key: 'visual', className: 'flex rounded-full overflow-hidden h-4 bg-gray-200' },
-                    data.map((item, index) => {
-                        const percentage = (item[dataKey] / total) * 100;
-                        return e('div', {
-                            key: index,
-                            className: 'transition-all duration-500',
-                            style: { 
-                                width: `${percentage}%`,
-                                backgroundColor: colors[index % colors.length]
-                            },
-                            title: `${item[nameKey]}: ${percentage.toFixed(1)}%`
-                        });
-                    })
+                
+                // Summary
+                e('div', { key: 'summary', className: 'text-center text-sm text-gray-600 bg-blue-50 rounded p-2' },
+                    `Totaal: ${total.toLocaleString()} requests verdeeld over ${data.length} environments`
                 )
             ]);
         };
@@ -409,39 +417,51 @@
             
             const maxValue = Math.max(...data.map(d => d[dataKey]));
             const minValue = Math.min(...data.map(d => d[dataKey]));
+            const range = maxValue - minValue;
             
             return e('div', { className: 'space-y-4' }, [
-                e('div', { key: 'chart', className: 'relative bg-gray-50 rounded-lg p-4', style: { height: `${height}px` } }, [
-                    e('div', { key: 'grid', className: 'absolute inset-4 grid grid-rows-4 border-l border-b border-gray-300' }, [
-                        ...Array(4).fill().map((_, i) => 
-                            e('div', { key: i, className: 'border-t border-gray-200' })
-                        )
+                e('div', { key: 'chart', className: 'relative bg-gray-50 rounded-lg p-4 overflow-x-auto', style: { height: `${height}px` } }, [
+                    // Y-axis labels
+                    e('div', { key: 'y-axis', className: 'absolute left-0 top-4 bottom-8 w-16 flex flex-col justify-between text-xs text-gray-600' }, [
+                        e('span', { key: 'max' }, maxValue.toLocaleString()),
+                        e('span', { key: 'mid' }, Math.round((maxValue + minValue) / 2).toLocaleString()),
+                        e('span', { key: 'min' }, minValue.toLocaleString())
                     ]),
-                    e('div', { key: 'data', className: 'relative h-full flex items-end justify-between px-4' },
+                    
+                    // Chart area
+                    e('div', { key: 'chart-area', className: 'ml-16 h-full flex items-end', style: { minWidth: `${data.length * 60}px` } },
                         data.map((item, index) => {
-                            const height = ((item[dataKey] - minValue) / (maxValue - minValue)) * 80 + 10;
-                            return e('div', { key: index, className: 'flex flex-col items-center gap-2' }, [
+                            const heightPercent = range > 0 ? ((item[dataKey] - minValue) / range) * 80 + 10 : 50;
+                            return e('div', { key: index, className: 'flex-1 flex flex-col items-center gap-2 px-1' }, [
+                                e('div', { key: 'value', className: 'text-xs font-medium text-gray-700 mb-1' }, 
+                                    item[dataKey].toLocaleString()
+                                ),
                                 e('div', {
                                     key: 'bar',
-                                    className: 'transition-all duration-500 rounded-t opacity-70',
+                                    className: 'w-8 transition-all duration-500 rounded-t-sm opacity-80 hover:opacity-100',
                                     style: { 
-                                        height: `${height}%`,
-                                        width: '20px',
-                                        backgroundColor: color
+                                        height: `${heightPercent}%`,
+                                        backgroundColor: color,
+                                        minHeight: '4px'
                                     },
                                     title: `${item[nameKey]}: ${item[dataKey].toLocaleString()}`
                                 }),
-                                e('span', { 
+                                e('div', { 
                                     key: 'label', 
-                                    className: 'text-xs text-gray-600 transform -rotate-45 origin-top-left whitespace-nowrap',
-                                    style: { fontSize: '10px' }
+                                    className: 'text-xs text-gray-600 text-center leading-tight mt-2',
+                                    style: { 
+                                        writingMode: 'vertical-rl', 
+                                        textOrientation: 'mixed',
+                                        height: '40px',
+                                        fontSize: '10px'
+                                    }
                                 }, item[nameKey])
                             ]);
                         })
                     )
                 ]),
-                e('div', { key: 'summary', className: 'text-center text-sm text-gray-600' },
-                    `Max: ${maxValue.toLocaleString()} | Min: ${minValue.toLocaleString()} | Gem: ${Math.round(data.reduce((sum, d) => sum + d[dataKey], 0) / data.length).toLocaleString()}`
+                e('div', { key: 'summary', className: 'text-center text-sm text-gray-600 bg-gray-100 rounded p-2' },
+                    `Totaal: ${data.reduce((sum, d) => sum + d[dataKey], 0).toLocaleString()} requests over ${data.length} periodes`
                 )
             ]);
         };
@@ -704,12 +724,15 @@
 
                     const processedData = rawData.map((row, index) => {
                         const date = row.YyyyMm ? new Date(row.YyyyMm) : null;
+                        const monthNames = ['Jan', 'Feb', 'Mrt', 'Apr', 'Mei', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
+                        
                         return {
                             ...row,
                             id: index,
                             YyyyMm: date,
                             Aantal: parseInt(row.Aantal) || 0,
-                            month: date ? date.toLocaleDateString('nl-NL', { year: 'numeric', month: 'short' }) : 'Onbekend',
+                            month: date ? `${monthNames[date.getMonth()]} ${date.getFullYear()}` : 'Onbekend',
+                            monthKey: date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}` : 'unknown',
                             year: date ? date.getFullYear() : 'Onbekend',
                             userCategory: categorizeUser(row.Gebruiker, row.Aantal),
                             productCategory: categorizeProduct(row.Product),
@@ -822,14 +845,27 @@
 
             // Chart data
             const getMonthlyData = () => {
-                const grouped = _.groupBy(filteredData, 'month');
+                const grouped = _.groupBy(filteredData.filter(d => d.YyyyMm), d => {
+                    const date = new Date(d.YyyyMm);
+                    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                });
+                
                 return Object.entries(grouped)
-                    .map(([month, records]) => ({
-                        month,
-                        requests: records.reduce((sum, r) => sum + r.Aantal, 0),
-                        records: records.length
-                    }))
-                    .sort((a, b) => new Date(a.month) - new Date(b.month));
+                    .map(([monthKey, records]) => {
+                        const [year, month] = monthKey.split('-');
+                        const monthNames = ['Jan', 'Feb', 'Mrt', 'Apr', 'Mei', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
+                        const monthName = monthNames[parseInt(month) - 1];
+                        
+                        return {
+                            month: `${monthName} ${year}`,
+                            monthKey: monthKey,
+                            requests: records.reduce((sum, r) => sum + r.Aantal, 0),
+                            records: records.length,
+                            sortDate: new Date(parseInt(year), parseInt(month) - 1, 1)
+                        };
+                    })
+                    .sort((a, b) => a.sortDate - b.sortDate)
+                    .slice(-12); // Laatste 12 maanden
             };
 
             const getInsurerData = () => {
