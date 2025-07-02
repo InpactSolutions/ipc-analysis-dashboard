@@ -660,13 +660,15 @@
                 environment: [],
                 insurer: [],
                 product: [],
+                user: [],
                 dateRange: 'all',
                 searchTerm: ''
             });
             const [uniqueValues, setUniqueValues] = useState({
                 environments: [],
                 insurers: [],
-                products: []
+                products: [],
+                users: []
             });
 
             const fileInputRef = useRef(null);
@@ -726,6 +728,11 @@
                         const date = row.YyyyMm ? new Date(row.YyyyMm) : null;
                         const monthNames = ['Jan', 'Feb', 'Mrt', 'Apr', 'Mei', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
                         
+                        // Determine actual user - use GebruikerVe if available and valid, otherwise fall back to Gebruiker
+                        const actualUser = (row.GebruikerVe && row.GebruikerVe !== '(geen VE_MYAAND)' && row.GebruikerVe.trim() !== '') 
+                            ? row.GebruikerVe 
+                            : row.Gebruiker;
+                        
                         return {
                             ...row,
                             id: index,
@@ -734,10 +741,11 @@
                             month: date ? `${monthNames[date.getMonth()]} ${date.getFullYear()}` : 'Onbekend',
                             monthKey: date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}` : 'unknown',
                             year: date ? date.getFullYear() : 'Onbekend',
-                            userCategory: categorizeUser(row.Gebruiker, row.Aantal),
+                            actualUser: actualUser,
+                            userCategory: categorizeUser(actualUser, row.Aantal),
                             productCategory: categorizeProduct(row.Product),
                             hasValidDate: !!date,
-                            hasValidUser: !!row.Gebruiker && row.Gebruiker !== 'NULL',
+                            hasValidUser: !!actualUser && actualUser !== 'NULL',
                             completeness: calculateCompleteness(row)
                         };
                     });
@@ -748,7 +756,8 @@
                     setUniqueValues({
                         environments: _.uniq(processedData.map(d => d.Environment)).filter(Boolean),
                         insurers: _.uniq(processedData.map(d => d.Insurer)).filter(Boolean).sort(),
-                        products: _.uniq(processedData.map(d => d.Product)).filter(Boolean).sort()
+                        products: _.uniq(processedData.map(d => d.Product)).filter(Boolean).sort(),
+                        users: _.uniq(processedData.map(d => d.actualUser)).filter(d => d && d !== 'NULL').sort()
                     });
 
                     setFileUploaded(true);
@@ -785,6 +794,9 @@
                 if (filters.product.length > 0) {
                     filtered = filtered.filter(d => filters.product.includes(d.Product));
                 }
+                if (filters.user.length > 0) {
+                    filtered = filtered.filter(d => filters.user.includes(d.actualUser));
+                }
 
                 if (filters.dateRange !== 'all') {
                     const now = new Date();
@@ -811,7 +823,7 @@
                     filtered = filtered.filter(d => 
                         (d.Insurer && d.Insurer.toLowerCase().includes(searchLower)) ||
                         (d.Product && d.Product.toLowerCase().includes(searchLower)) ||
-                        (d.Gebruiker && d.Gebruiker.toLowerCase().includes(searchLower)) ||
+                        (d.actualUser && d.actualUser.toLowerCase().includes(searchLower)) ||
                         (d.Engine && d.Engine.toLowerCase().includes(searchLower))
                     );
                 }
@@ -826,7 +838,7 @@
             // Statistics
             const stats = useMemo(() => {
                 const totalRequests = filteredData.reduce((sum, d) => sum + d.Aantal, 0);
-                const uniqueUsers = _.uniq(filteredData.map(d => d.Gebruiker)).length;
+                const uniqueUsers = _.uniq(filteredData.map(d => d.actualUser)).length;
                 const uniqueProducts = _.uniq(filteredData.map(d => d.Product)).length;
                 const uniqueInsurers = _.uniq(filteredData.map(d => d.Insurer)).length;
                 const avgPerMonth = filteredData.length > 0 ? Math.round(totalRequests / _.uniq(filteredData.map(d => d.month)).length) : 0;
@@ -1152,7 +1164,7 @@
                                         })
                                     ]),
                                     
-                                    e('div', { className: 'grid grid-cols-1 lg:grid-cols-4 gap-4' }, [
+                                    e('div', { className: 'grid grid-cols-1 lg:grid-cols-5 gap-4' }, [
                                         // Environment filter
                                         e('div', { key: 'env-filter' }, [
                                             e('label', { className: 'block text-sm font-medium mb-2' }, 'Environment'),
@@ -1228,6 +1240,34 @@
                                                             }),
                                                             e('span', { key: 'label', className: 'text-sm', title: product }, 
                                                                 product.length > 20 ? product.substring(0, 20) + '...' : product
+                                                            )
+                                                        ]
+                                                    )
+                                                )
+                                            )
+                                        ]),
+
+                                        // User filter
+                                        e('div', { key: 'user-filter' }, [
+                                            e('label', { className: 'block text-sm font-medium mb-2' }, 'Gebruiker'),
+                                            e('div', 
+                                                { className: `border rounded-lg p-2 max-h-32 overflow-y-auto ${darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-white'}` },
+                                                uniqueValues.users.slice(0, 15).map(user =>
+                                                    e('label', 
+                                                        { 
+                                                            key: user,
+                                                            className: 'flex items-center gap-2 p-1 hover:bg-gray-50 rounded cursor-pointer' 
+                                                        },
+                                                        [
+                                                            e('input', {
+                                                                key: 'checkbox',
+                                                                type: 'checkbox',
+                                                                checked: filters.user.includes(user),
+                                                                onChange: () => handleMultiSelectFilter('user', user),
+                                                                className: 'w-4 h-4'
+                                                            }),
+                                                            e('span', { key: 'label', className: 'text-sm', title: user }, 
+                                                                user.length > 20 ? user.substring(0, 20) + '...' : user
                                                             )
                                                         ]
                                                     )
@@ -1405,73 +1445,45 @@
                             )
                         ]),
 
-                        // Top Performers
+                        // Top Performers - Updated to show different views based on filters
                         e('div', { key: 'performers', className: 'grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6' }, [
-                            // Top Insurers
+                            // Dynamic first chart - shows users if product is selected, otherwise insurers
                             e('div', 
-                                { key: 'insurers', className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6` },
+                                { key: 'dynamic1', className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6` },
                                 [
-                                    e('h3', { key: 'title', className: 'text-lg font-semibold mb-4' }, 'Top 10 Verzekeraars'),
-                                    typeof Recharts !== 'undefined' ?
-                                        e(ResponsiveContainer, { key: 'chart', width: '100%', height: 400 },
-                                            e(BarChart, { data: getInsurerData(), layout: 'horizontal' }, [
-                                                e(CartesianGrid, { key: 'grid', strokeDasharray: '3 3', stroke: darkMode ? '#374151' : '#e5e7eb' }),
-                                                e(XAxis, { key: 'xaxis', type: 'number', stroke: darkMode ? '#9ca3af' : '#6b7280' }),
-                                                e(YAxis, { key: 'yaxis', dataKey: 'insurer', type: 'category', width: 120, stroke: darkMode ? '#9ca3af' : '#6b7280' }),
-                                                e(Tooltip, { 
-                                                    key: 'tooltip',
-                                                    formatter: (value) => [value.toLocaleString(), 'Requests'],
-                                                    contentStyle: {
-                                                        backgroundColor: darkMode ? '#1f2937' : '#ffffff',
-                                                        border: '1px solid ' + (darkMode ? '#374151' : '#e5e7eb'),
-                                                        borderRadius: '0.5rem'
-                                                    }
-                                                }),
-                                                e(Bar, { key: 'bar', dataKey: 'requests', fill: '#10b981' })
-                                            ])
-                                        ) :
+                                    e('h3', { key: 'title', className: 'text-lg font-semibold mb-4' }, 
+                                        filters.product.length > 0 ? 'Gebruikers van Geselecteerde Producten' : 'Top 10 Verzekeraars'
+                                    ),
+                                    typeof Recharts !== 'undefined' ? null :
                                         e(SimpleBarChart, { 
                                             key: 'fallback',
-                                            data: getInsurerData(), 
+                                            data: filters.product.length > 0 ? getProductUserData() : getInsurerData(), 
                                             dataKey: 'requests', 
-                                            nameKey: 'insurer', 
+                                            nameKey: filters.product.length > 0 ? 'user' : 'insurer', 
                                             color: '#10b981' 
                                         })
                                 ]
                             ),
 
-                            // Top Products
+                            // Dynamic second chart - shows products of selected users, or top users, or top products
                             e('div', 
-                                { key: 'products', className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6` },
+                                { key: 'dynamic2', className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6` },
                                 [
-                                    e('h3', { key: 'title', className: 'text-lg font-semibold mb-4' }, 'Top 10 Producten'),
-                                    typeof Recharts !== 'undefined' ?
-                                        e(ResponsiveContainer, { key: 'chart', width: '100%', height: 400 },
-                                            e(BarChart, { data: getProductData(), layout: 'horizontal' }, [
-                                                e(CartesianGrid, { key: 'grid', strokeDasharray: '3 3', stroke: darkMode ? '#374151' : '#e5e7eb' }),
-                                                e(XAxis, { key: 'xaxis', type: 'number', stroke: darkMode ? '#9ca3af' : '#6b7280' }),
-                                                e(YAxis, { key: 'yaxis', dataKey: 'product', type: 'category', width: 140, stroke: darkMode ? '#9ca3af' : '#6b7280' }),
-                                                e(Tooltip, { 
-                                                    key: 'tooltip',
-                                                    formatter: (value) => [value.toLocaleString(), 'Requests'],
-                                                    labelFormatter: (label) => {
-                                                        const item = getProductData().find(d => d.product === label);
-                                                        return item ? item.fullProduct : label;
-                                                    },
-                                                    contentStyle: {
-                                                        backgroundColor: darkMode ? '#1f2937' : '#ffffff',
-                                                        border: '1px solid ' + (darkMode ? '#374151' : '#e5e7eb'),
-                                                        borderRadius: '0.5rem'
-                                                    }
-                                                }),
-                                                e(Bar, { key: 'bar', dataKey: 'requests', fill: '#f59e0b' })
-                                            ])
-                                        ) :
+                                    e('h3', { key: 'title', className: 'text-lg font-semibold mb-4' }, 
+                                        filters.user.length > 0 ? 'Producten van Geselecteerde Gebruikers' :
+                                        filters.product.length === 0 && filters.user.length === 0 ? 'Top 10 Gebruikers' :
+                                        'Top 10 Producten'
+                                    ),
+                                    typeof Recharts !== 'undefined' ? null :
                                         e(SimpleBarChart, { 
                                             key: 'fallback',
-                                            data: getProductData(), 
+                                            data: filters.user.length > 0 ? getUserProductData() :
+                                                   filters.product.length === 0 && filters.user.length === 0 ? getUserData() :
+                                                   getProductData(), 
                                             dataKey: 'requests', 
-                                            nameKey: 'product', 
+                                            nameKey: filters.user.length > 0 ? 'product' :
+                                                    filters.product.length === 0 && filters.user.length === 0 ? 'user' :
+                                                    'product', 
                                             color: '#f59e0b' 
                                         })
                                 ]
