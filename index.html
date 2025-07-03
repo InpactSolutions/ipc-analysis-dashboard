@@ -1069,9 +1069,11 @@
             const getFilteredUsers = () => {
                 let baseData = data;
                 
+                // Only filter by insurer if insurers are selected
                 if (filters.insurer.length > 0) {
                     baseData = baseData.filter(d => filters.insurer.includes(d.Insurer));
                 }
+                // Only filter by product if products are selected
                 if (filters.product.length > 0) {
                     baseData = baseData.filter(d => filters.product.includes(d.Product));
                 }
@@ -1224,13 +1226,14 @@
                         newFilters[type] = [...newFilters[type], value];
                     }
                     
+                    // Only clear dependent filters if we're changing insurer or product
                     if (type === 'insurer') {
                         newFilters.product = [];
-                        newFilters.user = [];
+                        // Don't clear users automatically when changing insurer
                     }
                     
                     if (type === 'product') {
-                        newFilters.user = [];
+                        // Don't clear users automatically when changing product
                     }
                     
                     return newFilters;
@@ -1499,21 +1502,17 @@
                                                 e(User, { className: 'w-4 h-4' }),
                                                 'Gebruiker (Combinatie)'
                                             ]),
-                                            filters.insurer.length === 0 ? 
-                                                e('div', { className: `px-3 py-2 text-sm text-gray-500 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-100 border-gray-300'}` },
-                                                    'Selecteer eerst verzekeraar'
-                                                ) :
-                                                e(MultiSelectDropdown, {
-                                                    options: getFilteredUsers(),
-                                                    selectedValues: filters.user,
-                                                    onToggle: (value) => handleMultiSelectFilter('user', value),
-                                                    placeholder: 'Selecteer gebruikers...',
-                                                    darkMode: darkMode,
-                                                    searchTerm: searchTerms.user,
-                                                    onSearchChange: (term) => setSearchTerms(prev => ({ ...prev, user: term })),
-                                                    showSearch: true,
-                                                    maxHeight: '250px'
-                                                })
+                                            e(MultiSelectDropdown, {
+                                                options: getFilteredUsers(),
+                                                selectedValues: filters.user,
+                                                onToggle: (value) => handleMultiSelectFilter('user', value),
+                                                placeholder: 'Selecteer gebruikers...',
+                                                darkMode: darkMode,
+                                                searchTerm: searchTerms.user,
+                                                onSearchChange: (term) => setSearchTerms(prev => ({ ...prev, user: term })),
+                                                showSearch: true,
+                                                maxHeight: '250px'
+                                            })
                                         ]),
 
                                         e('div', { key: 'date-filters', className: 'space-y-3' }, [
