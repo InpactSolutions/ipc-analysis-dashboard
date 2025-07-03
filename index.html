@@ -689,8 +689,7 @@
                 product: [],
                 user: [],
                 selectedYear: 'all',
-                selectedMonth: 'all',
-                searchTerm: ''
+                selectedMonth: 'all'
             });
             const [uniqueValues, setUniqueValues] = useState({
                 environments: [],
@@ -889,16 +888,6 @@
                 }
                 if (filters.selectedMonth !== 'all') {
                     filtered = filtered.filter(d => d.YyyyMm && (d.YyyyMm.getMonth() + 1) === parseInt(filters.selectedMonth));
-                }
-
-                if (filters.searchTerm) {
-                    const searchLower = filters.searchTerm.toLowerCase();
-                    filtered = filtered.filter(d => 
-                        (d.Insurer && d.Insurer.toLowerCase().includes(searchLower)) ||
-                        (d.Product && d.Product.toLowerCase().includes(searchLower)) ||
-                        (d.actualUser && d.actualUser.toLowerCase().includes(searchLower)) ||
-                        (d.Engine && d.Engine.toLowerCase().includes(searchLower))
-                    );
                 }
 
                 setFilteredData(filtered);
@@ -1235,19 +1224,6 @@
                                     e('h2', { className: 'text-lg font-semibold' }, 'Geavanceerde Filters')
                                 ]),
                                 e('div', { key: 'filter-content', className: 'space-y-4' }, [
-                                    e('div', { className: 'relative' }, [
-                                        e(Search, { className: 'absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400' }),
-                                        e('input', {
-                                            type: 'text',
-                                            placeholder: 'Zoek in verzekeraars, producten, gebruikers...',
-                                            value: filters.searchTerm,
-                                            onChange: (event) => setFilters(prev => ({ ...prev, searchTerm: event.target.value })),
-                                            className: `w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                                darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
-                                            }`
-                                        })
-                                    ]),
-                                    
                                     e('div', { className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4' }, [
                                         e('div', { key: 'env-filter' }, [
                                             e('label', { className: 'block text-sm font-medium mb-2' }, 'Environment'),
