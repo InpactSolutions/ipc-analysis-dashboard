@@ -1121,21 +1121,23 @@
                         let gimDescription = 'Onbekend';
                         
                         if (row.Engine && typeof row.Engine === 'string') {
-                            // Try to find GIM code in engine name - look for specific patterns
-                            const matches = row.Engine.match(/\b(\d{3,4})\b/g); // Look for 3-4 digit numbers
+                            // Only look for GIM codes that actually exist in the GimFunctions lookup
+                            // Don't match years or other numbers
+                            const possibleCodes = Object.keys(gimFunctions).map(code => parseInt(code));
+                            
+                            // Extract all numbers from the engine name
+                            const matches = row.Engine.match(/\d+/g);
                             if (matches) {
                                 for (const match of matches) {
                                     const code = parseInt(match);
-                                    if (gimFunctions[code]) {
+                                    // Only accept codes that exist in our GIM functions lookup
+                                    if (possibleCodes.includes(code)) {
                                         gimFunction = code;
                                         gimDescription = gimFunctions[code];
                                         break;
                                     }
                                 }
                             }
-                            
-                            // If no exact GIM code found, don't assign anything
-                            // This ensures only actual GIM codes from data are used
                         }
                         
                         return {
@@ -1170,13 +1172,21 @@
                     const allInsurers = _.uniq(processedData.map(d => d.Insurer)).filter(Boolean).sort();
                     const allProducts = _.uniq(processedData.map(d => d.Product)).filter(Boolean).sort();
                     const allUsers = _.uniq(processedData.map(d => d.userDisplayName)).filter(Boolean).sort();
+                    // Debug: Log some engine examples and GIM functions found
+                    console.log('Sample engines:', rawData.slice(0, 10).map(r => r.Engine));
+                    console.log('Available GIM codes from sheet:', Object.keys(gimFunctions));
+                    
                     // Extract only GIM functions that actually appear in the processed data
                     const actualGimFunctions = new Set();
+                    let gimFoundCount = 0;
                     processedData.forEach(row => {
                         if (row.gimFunction) {
                             actualGimFunctions.add(row.gimDisplayName);
+                            gimFoundCount++;
                         }
                     });
+                    
+                    console.log(`Found ${gimFoundCount} records with valid GIM functions out of ${processedData.length} total records`);
                     
                     // Add the "(Leeg)" option for records without GIM function
                     const hasEmptyGimRecords = processedData.some(row => !row.gimFunction);
@@ -1186,7 +1196,7 @@
                     
                     const allGimFunctions = Array.from(actualGimFunctions).sort();
                     
-                    console.log('Actual GIM functions found in data:', allGimFunctions);
+                    console.log('Final GIM functions for dropdown:', allGimFunctions);
                     const allYears = _.uniq(processedData.filter(d => d.YyyyMm).map(d => d.YyyyMm.getFullYear())).sort().reverse();
 
                     console.log('Unique values extracted:');
