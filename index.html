@@ -1004,15 +1004,13 @@
                 user: '',
                 environment: '',
                 insurer: '',
-                product: '',
-                gimFunction: ''
+                product: ''
             });
             const [filters, setFilters] = useState({
                 environment: [],
                 insurer: [],
                 product: [],
                 user: [],
-                gimFunction: [],
                 selectedYear: 'all',
                 selectedMonth: 'all'
             });
@@ -1021,7 +1019,6 @@
                 insurers: [],
                 products: [],
                 users: [],
-                gimFunctions: [],
                 years: [],
                 months: []
             });
@@ -1075,21 +1072,13 @@
                     const dataSheet = workbook.Sheets['Data'];
                     const rawData = XLSX.utils.sheet_to_json(dataSheet);
                     
-                    // Laad GIM Functions als beschikbaar
+                    // Laad GIM Functions als beschikbaar - maar gebruik ze niet
                     let gimFunctions = {};
                     if (workbook.SheetNames.includes('GimFunctions')) {
                         const gimSheet = workbook.Sheets['GimFunctions'];
                         const gimData = XLSX.utils.sheet_to_json(gimSheet);
-                        gimData.forEach(row => {
-                            if (row.Code && row.Description) {
-                                gimFunctions[row.Code] = row.Description;
-                            }
-                        });
-                        console.log('Loaded GIM functions:', gimFunctions);
+                        // Laden maar niet gebruiken
                     }
-                    
-                    // Debug: Log some engine examples to understand the pattern
-                    console.log('Sample engines for analysis:', rawData.slice(0, 20).map(r => r.Engine));
                     
                     if (rawData.length === 0) {
                         throw new Error('Data sheet is leeg');
@@ -1245,7 +1234,6 @@
                         insurers: allInsurers,
                         products: allProducts,
                         users: allUsers,
-                        gimFunctions: allGimFunctions,
                         years: allYears,
                         months: [
                             { value: 1, label: 'Januari' },
@@ -1303,47 +1291,6 @@
                 return users;
             };
 
-            // Get filtered GIM functions based on selected filters
-            const getFilteredGimFunctions = () => {
-                let baseData = data;
-                
-                // Filter by other selected filters to show only relevant GIM functions
-                if (filters.environment.length > 0) {
-                    baseData = baseData.filter(d => filters.environment.includes(d.Environment));
-                }
-                if (filters.insurer.length > 0) {
-                    baseData = baseData.filter(d => filters.insurer.includes(d.Insurer));
-                }
-                if (filters.product.length > 0) {
-                    baseData = baseData.filter(d => filters.product.includes(d.Product));
-                }
-                if (filters.user.length > 0) {
-                    baseData = baseData.filter(d => filters.user.includes(d.userDisplayName));
-                }
-                if (filters.selectedYear !== 'all') {
-                    baseData = baseData.filter(d => d.YyyyMm && d.YyyyMm.getFullYear() === parseInt(filters.selectedYear));
-                }
-                if (filters.selectedMonth !== 'all') {
-                    baseData = baseData.filter(d => d.YyyyMm && (d.YyyyMm.getMonth() + 1) === parseInt(filters.selectedMonth));
-                }
-                
-                // Extract only GIM functions that actually appear in the filtered data
-                const actualGimFunctions = new Set();
-                baseData.forEach(row => {
-                    if (row.gimFunction) {
-                        actualGimFunctions.add(row.gimDisplayName);
-                    }
-                });
-                
-                // Add the "(Leeg)" option if there are records without GIM function
-                const hasEmptyGimRecords = baseData.some(row => !row.gimFunction);
-                if (hasEmptyGimRecords) {
-                    actualGimFunctions.add('(Leeg)');
-                }
-                
-                return Array.from(actualGimFunctions).sort();
-            };
-
             // Notification system
             const addNotification = (type, message) => {
                 const id = Date.now();
@@ -1369,9 +1316,6 @@
                 if (filters.user.length > 0) {
                     filtered = filtered.filter(d => filters.user.includes(d.userDisplayName));
                 }
-                if (filters.gimFunction.length > 0) {
-                    filtered = filtered.filter(d => filters.gimFunction.includes(d.gimDisplayName));
-                }
 
                 if (filters.selectedYear !== 'all') {
                     filtered = filtered.filter(d => d.YyyyMm && d.YyyyMm.getFullYear() === parseInt(filters.selectedYear));
@@ -1393,9 +1337,6 @@
                 const uniqueUsers = _.uniq(filteredData.map(d => d.actualUser)).length;
                 const uniqueProducts = _.uniq(filteredData.map(d => d.Product)).length;
                 const uniqueInsurers = _.uniq(filteredData.map(d => d.Insurer)).length;
-                const uniqueGimFunctions = _.uniq(filteredData.filter(d => d.gimFunction).map(d => d.gimFunction)).length;
-                const recordsWithGimFunction = filteredData.filter(d => d.gimFunction).length;
-                const recordsWithoutGimFunction = filteredData.filter(d => !d.gimFunction).length;
                 const avgPerMonth = filteredData.length > 0 ? Math.round(totalRequests / _.uniq(filteredData.map(d => d.month)).length) : 0;
                 const dataQuality = _.mean(filteredData.map(d => d.completeness)) || 0;
 
@@ -1404,9 +1345,6 @@
                     uniqueUsers,
                     uniqueProducts,
                     uniqueInsurers,
-                    uniqueGimFunctions,
-                    recordsWithGimFunction,
-                    recordsWithoutGimFunction,
                     avgPerMonth,
                     totalRecords: filteredData.length,
                     dataQuality
@@ -1464,16 +1402,8 @@
             };
 
             const getGimFunctionData = () => {
-                const grouped = _.groupBy(filteredData, 'gimDisplayName');
-                return Object.entries(grouped)
-                    .map(([gimFunc, records]) => ({
-                        gimFunction: gimFunc.length > 30 ? gimFunc.substring(0, 30) + '...' : gimFunc,
-                        fullGimFunction: gimFunc,
-                        requests: records.reduce((sum, r) => sum + r.Aantal, 0),
-                        records: records.length
-                    }))
-                    .sort((a, b) => b.requests - a.requests)
-                    .slice(0, 10);
+                // Removed - no longer needed
+                return [];
             };
 
             const getUserData = () => {
@@ -1734,7 +1664,7 @@
                                     e('h2', { className: 'text-lg font-semibold' }, 'Geavanceerde Filters')
                                 ]),
                                 e('div', { key: 'filter-content', className: 'space-y-4' }, [
-                                    e('div', { className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4' }, [
+                                    e('div', { className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4' }, [
                                         e('div', { key: 'env-filter' }, [
                                             e('label', { className: 'block text-sm font-medium mb-2' }, 'Environment'),
                                             e(MultiSelectDropdown, {
@@ -1799,24 +1729,6 @@
                                             })
                                         ]),
 
-                                        e('div', { key: 'gim-filter' }, [
-                                            e('label', { className: 'block text-sm font-medium mb-2 flex items-center gap-2' }, [
-                                                e(Package, { className: 'w-4 h-4' }),
-                                                'GIM Functie'
-                                            ]),
-                                            e(MultiSelectDropdown, {
-                                                options: getFilteredGimFunctions(),
-                                                selectedValues: filters.gimFunction,
-                                                onToggle: (value) => handleMultiSelectFilter('gimFunction', value),
-                                                placeholder: 'Selecteer GIM functies...',
-                                                darkMode: darkMode,
-                                                searchTerm: searchTerms.gimFunction,
-                                                onSearchChange: (term) => setSearchTerms(prev => ({ ...prev, gimFunction: term })),
-                                                showSearch: true,
-                                                maxHeight: '250px'
-                                            })
-                                        ]),
-
                                         e('div', { key: 'date-filters', className: 'space-y-3' }, [
                                             e('div', { key: 'year-filter' }, [
                                                 e('label', { className: 'block text-sm font-medium mb-2' }, 'Jaar'),
@@ -1870,7 +1782,7 @@
                         ),
 
                         e('div', 
-                            { key: 'stats', className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4 mb-6' },
+                            { key: 'stats', className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-6' },
                             [
                                 {
                                     title: 'Totaal Requests',
@@ -1897,22 +1809,16 @@
                                     color: 'orange'
                                 },
                                 {
-                                    title: 'GIM Functies',
-                                    value: stats.uniqueGimFunctions,
-                                    icon: Package,
-                                    color: 'purple'
+                                    title: 'Gem. per Maand',
+                                    value: stats.avgPerMonth.toLocaleString(),
+                                    icon: Calendar,
+                                    color: 'pink'
                                 },
                                 {
-                                    title: 'Met GIM',
-                                    value: stats.recordsWithGimFunction.toLocaleString(),
+                                    title: 'Data Kwaliteit',
+                                    value: `${stats.dataQuality.toFixed(1)}%`,
                                     icon: Eye,
-                                    color: 'green'
-                                },
-                                {
-                                    title: 'Zonder GIM',
-                                    value: stats.recordsWithoutGimFunction.toLocaleString(),
-                                    icon: AlertTriangle,
-                                    color: 'red'
+                                    color: 'cyan'
                                 }
                             ].map((stat, index) =>
                                 e('div', 
@@ -1981,25 +1887,6 @@
                             ),
 
                             e('div', 
-                                { key: 'gimfunctions', className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6` },
-                                [
-                                    e('h3', { key: 'title', className: 'text-lg font-semibold mb-4 flex items-center gap-2' }, [
-                                        e(Package, { className: 'w-5 h-5' }),
-                                        'Top 10 GIM Functies'
-                                    ]),
-                                    e(SimpleBarChart, { 
-                                        key: 'chart',
-                                        data: getGimFunctionData(), 
-                                        dataKey: 'requests', 
-                                        nameKey: 'gimFunction', 
-                                        color: '#8b5cf6' 
-                                    })
-                                ]
-                            )
-                        ]),
-
-                        e('div', { key: 'products-users', className: 'grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6' }, [
-                            e('div', 
                                 { key: 'products', className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6` },
                                 [
                                     e('h3', { key: 'title', className: 'text-lg font-semibold mb-4' }, 'Top 10 Producten'),
@@ -2011,26 +1898,26 @@
                                         color: '#f59e0b' 
                                     })
                                 ]
-                            ),
-
-                            e('div', 
-                                { key: 'users', className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6` },
-                                [
-                                    e('h3', { key: 'title', className: 'text-lg font-semibold mb-4 flex items-center gap-2' }, [
-                                        e(User, { className: 'w-5 h-5' }),
-                                        'Top 10 Gebruikers'
-                                    ]),
-                                    e(SimpleBarChart, { 
-                                        key: 'chart',
-                                        data: getUserData().slice(0, 10), 
-                                        dataKey: 'requests', 
-                                        nameKey: 'user', 
-                                        color: '#ec4899',
-                                        height: 350
-                                    })
-                                ]
                             )
                         ]),
+
+                        e('div', 
+                            { key: 'users', className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6 mb-6` },
+                            [
+                                e('h3', { key: 'title', className: 'text-lg font-semibold mb-4 flex items-center gap-2' }, [
+                                    e(User, { className: 'w-5 h-5' }),
+                                    'Top 15 Gebruikers (Combinatie van Gebruiker en GebruikerVe)'
+                                ]),
+                                e(SimpleBarChart, { 
+                                    key: 'chart',
+                                    data: getUserData(), 
+                                    dataKey: 'requests', 
+                                    nameKey: 'user', 
+                                    color: '#8b5cf6',
+                                    height: 400
+                                })
+                            ]
+                        ),
 
                         e('div', 
                             { key: 'footer', className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6` },
