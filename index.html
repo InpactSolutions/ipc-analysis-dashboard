@@ -817,14 +817,14 @@
             // Calculate coordinates for each point
             const points = data.map((item, index) => {
                 const x = (index / Math.max(data.length - 1, 1)) * 100;
-                const y = range > 0 ? (100 - ((item[dataKey] - minValue) / range) * 70) - 10 : 50;
+                const y = range > 0 ? (100 - ((item[dataKey] - minValue) / range) * 60) - 15 : 50;
                 return { x, y, value: item[dataKey], label: item[nameKey] };
             });
             
-            return e('div', { className: 'space-y-4' }, [
+            return e('div', { className: 'space-y-6' }, [
                 e('div', { key: 'chart', className: 'relative bg-white rounded-lg border p-8', style: { height: `${height}px` } }, [
                     // Chart container
-                    e('div', { key: 'chart-container', className: 'w-full relative', style: { height: 'calc(100% - 80px)' } }, [
+                    e('div', { key: 'chart-container', className: 'w-full relative', style: { height: 'calc(100% - 120px)' } }, [
                         // SVG Chart
                         e('svg', { 
                             key: 'svg',
@@ -860,7 +860,7 @@
                                 fill: 'url(#grid)'
                             }),
                             
-                            // Area under line (optional)
+                            // Area under line
                             e('polygon', {
                                 key: 'area',
                                 fill: color,
@@ -885,39 +885,85 @@
                                     key: `point-${index}`,
                                     cx: point.x,
                                     cy: point.y,
-                                    r: '3',
+                                    r: '4',
                                     fill: color,
                                     stroke: 'white',
                                     strokeWidth: '3',
-                                    className: 'hover:r-5 transition-all cursor-pointer'
+                                    className: 'hover:r-6 transition-all cursor-pointer'
                                 })
                             ),
                             
-                            // Value labels
+                            // Value labels with better positioning
                             ...points.map((point, index) => 
                                 e('text', {
                                     key: `label-${index}`,
                                     x: point.x,
-                                    y: point.y - 8,
+                                    y: point.y - 12,
                                     textAnchor: 'middle',
                                     fontSize: '4',
                                     fill: color,
                                     fontWeight: 'bold',
                                     className: 'pointer-events-none'
-                                }, point.value.toLocaleString())
+                                }, (point.value / 1000).toFixed(0) + 'k') // Show in thousands
                             )
                         ])
                     ]),
                     
-                    // X-axis labels
-                    e('div', { key: 'x-axis', className: 'absolute bottom-4 left-8 right-8 flex items-center justify-between' },
-                        data.map((item, index) => 
-                            e('div', { 
-                                key: index, 
-                                className: 'text-sm text-gray-700 font-medium text-center transform -rotate-45 origin-center whitespace-nowrap'
-                            }, item[nameKey])
+                    // X-axis with properly aligned labels
+                    e('div', { key: 'x-axis', className: 'absolute bottom-4 left-8 right-8 h-16' }, [
+                        e('div', { key: 'axis-line', className: 'w-full h-px bg-gray-300 mb-4' }),
+                        e('div', { key: 'labels', className: 'relative flex' },
+                            data.map((item, index) => 
+                                e('div', { 
+                                    key: index, 
+                                    className: 'text-sm text-gray-700 font-medium text-center',
+                                    style: { 
+                                        position: 'absolute',
+                                        left: `${(index / Math.max(data.length - 1, 1)) * 100}%`,
+                                        transform: 'translateX(-50%)',
+                                        whiteSpace: 'nowrap'
+                                    }
+                                }, item[nameKey])
+                            )
                         )
-                    )
+                    ])
+                ]),
+                
+                // Data table
+                e('div', { key: 'table', className: 'bg-gray-50 rounded-lg p-4' }, [
+                    e('h4', { key: 'table-title', className: 'text-lg font-semibold mb-4 text-gray-700' }, 'Detailgegevens'),
+                    e('div', { key: 'table-container', className: 'overflow-x-auto' }, [
+                        e('table', { key: 'table', className: 'w-full text-sm' }, [
+                            e('thead', { key: 'thead' }, [
+                                e('tr', { key: 'header-row', className: 'border-b border-gray-300' }, [
+                                    e('th', { key: 'period', className: 'text-left py-2 px-3 font-semibold text-gray-700' }, 'Periode'),
+                                    e('th', { key: 'requests', className: 'text-right py-2 px-3 font-semibold text-gray-700' }, 'Requests'),
+                                    e('th', { key: 'change', className: 'text-right py-2 px-3 font-semibold text-gray-700' }, 'Verandering')
+                                ])
+                            ]),
+                            e('tbody', { key: 'tbody' },
+                                data.map((item, index) => {
+                                    const prevValue = index > 0 ? data[index - 1][dataKey] : item[dataKey];
+                                    const change = index > 0 ? item[dataKey] - prevValue : 0;
+                                    const changePercent = index > 0 && prevValue > 0 ? ((change / prevValue) * 100) : 0;
+                                    
+                                    return e('tr', { 
+                                        key: index,
+                                        className: `border-b border-gray-200 hover:bg-gray-100 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`
+                                    }, [
+                                        e('td', { key: 'period', className: 'py-2 px-3 font-medium' }, item[nameKey]),
+                                        e('td', { key: 'requests', className: 'py-2 px-3 text-right font-mono' }, item[dataKey].toLocaleString()),
+                                        e('td', { key: 'change', className: 'py-2 px-3 text-right' }, 
+                                            index === 0 ? '-' : 
+                                            e('span', { 
+                                                className: `font-medium ${change >= 0 ? 'text-green-600' : 'text-red-600'}`
+                                            }, `${change >= 0 ? '+' : ''}${change.toLocaleString()} (${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(1)}%)`)
+                                        )
+                                    ]);
+                                })
+                            )
+                        ])
+                    ])
                 ]),
                 
                 // Summary
