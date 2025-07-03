@@ -1134,26 +1134,11 @@
                                 }
                             }
                             
-                            // If no GIM code found, categorize based on engine type
+                            // If no exact GIM code found, don't try to categorize
+                            // Only use actual GIM codes from the data
                             if (!gimFunction) {
-                                const engineUpper = row.Engine.toUpperCase();
-                                if (engineUpper.includes('AANVRAGEN') || engineUpper.includes('AANVRAAG')) {
-                                    gimFunction = 2000;
-                                    gimDescription = 'aanvragen';
-                                } else if (engineUpper.includes('MUTEREN') || engineUpper.includes('MUTATIE')) {
-                                    gimFunction = 2001;
-                                    gimDescription = 'muteren';
-                                } else if (engineUpper.includes('RAADPLEGEN') || engineUpper.includes('RAADPLEEG')) {
-                                    gimFunction = 2003;
-                                    gimDescription = 'raadplegen';
-                                } else if (engineUpper.includes('OPVRAGEN') || engineUpper.includes('OPVRAAG')) {
-                                    gimFunction = 1000;
-                                    gimDescription = 'gegevens opvragen';
-                                } else {
-                                    // Default categorization based on common patterns
-                                    gimFunction = 1000;
-                                    gimDescription = 'algemeen';
-                                }
+                                gimFunction = null;
+                                gimDescription = 'Onbekend';
                             }
                         }
                         
@@ -1188,7 +1173,7 @@
                     const allInsurers = _.uniq(processedData.map(d => d.Insurer)).filter(Boolean).sort();
                     const allProducts = _.uniq(processedData.map(d => d.Product)).filter(Boolean).sort();
                     const allUsers = _.uniq(processedData.map(d => d.userDisplayName)).filter(Boolean).sort();
-                    const allGimFunctions = _.uniq(processedData.map(d => d.gimDisplayName)).filter(Boolean).sort();
+                    const allGimFunctions = _.uniq(processedData.map(d => d.gimDisplayName)).filter(d => d && d !== 'Onbekend').sort();
                     const allYears = _.uniq(processedData.filter(d => d.YyyyMm).map(d => d.YyyyMm.getFullYear())).sort().reverse();
 
                     console.log('Unique values extracted:');
@@ -1375,7 +1360,7 @@
             };
 
             const getGimFunctionData = () => {
-                const grouped = _.groupBy(filteredData, 'gimDisplayName');
+                const grouped = _.groupBy(filteredData.filter(d => d.gimFunction !== null), 'gimDisplayName');
                 return Object.entries(grouped)
                     .map(([gimFunc, records]) => ({
                         gimFunction: gimFunc.length > 30 ? gimFunc.substring(0, 30) + '...' : gimFunc,
