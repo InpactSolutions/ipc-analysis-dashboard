@@ -807,169 +807,141 @@
             ]);
         };
 
-        const SimpleLineChart = ({ data, dataKey, nameKey, color = '#3b82f6', height = 500 }) => {
+        const SimpleLineChart = ({ data, dataKey, nameKey, color = '#3b82f6', height = 400 }) => {
             if (!data || data.length === 0) return e('div', { className: 'text-center py-8 text-gray-500' }, 'Geen data beschikbaar');
             
-            const maxValue = Math.max(...data.map(d => d[dataKey]));
-            const minValue = Math.min(...data.map(d => d[dataKey]));
-            const range = maxValue - minValue;
+            const canvasRef = useRef(null);
+            const [hoveredPoint, setHoveredPoint] = useState(null);
             
-            // Calculate coordinates for each point
-            const points = data.map((item, index) => {
-                const x = (index / Math.max(data.length - 1, 1)) * 100;
-                const y = range > 0 ? (100 - ((item[dataKey] - minValue) / range) * 60) - 15 : 50;
-                return { x, y, value: item[dataKey], label: item[nameKey] };
-            });
-            
-            return e('div', { className: 'space-y-6' }, [
-                e('div', { key: 'chart', className: 'relative bg-white rounded-lg border p-8', style: { height: `${height}px` } }, [
-                    // Chart container
-                    e('div', { key: 'chart-container', className: 'w-full relative', style: { height: 'calc(100% - 120px)' } }, [
-                        // SVG Chart
-                        e('svg', { 
-                            key: 'svg',
-                            width: '100%',
-                            height: '100%',
-                            viewBox: '0 0 100 100',
-                            className: 'overflow-visible'
-                        }, [
-                            // Grid lines
-                            e('defs', { key: 'defs' }, [
-                                e('pattern', {
-                                    key: 'grid',
-                                    id: 'grid',
-                                    width: '10',
-                                    height: '10',
-                                    patternUnits: 'userSpaceOnUse'
-                                }, [
-                                    e('path', {
-                                        key: 'grid-path',
-                                        d: 'M 10 0 L 0 0 0 10',
-                                        fill: 'none',
-                                        stroke: '#f8f9fa',
-                                        strokeWidth: '0.5'
-                                    })
-                                ])
-                            ]),
-                            
-                            // Background grid
-                            e('rect', {
-                                key: 'bg',
-                                width: '100',
-                                height: '100',
-                                fill: 'url(#grid)'
-                            }),
-                            
-                            // Area under line
-                            e('polygon', {
-                                key: 'area',
-                                fill: color,
-                                fillOpacity: '0.1',
-                                points: `0,100 ${points.map(p => `${p.x},${p.y}`).join(' ')} 100,100`
-                            }),
-                            
-                            // Main line
-                            e('polyline', {
-                                key: 'line',
-                                fill: 'none',
-                                stroke: color,
-                                strokeWidth: '4',
-                                strokeLinecap: 'round',
-                                strokeLinejoin: 'round',
-                                points: points.map(p => `${p.x},${p.y}`).join(' ')
-                            }),
-                            
-                            // Data points
-                            ...points.map((point, index) => 
-                                e('circle', {
-                                    key: `point-${index}`,
-                                    cx: point.x,
-                                    cy: point.y,
-                                    r: '4',
-                                    fill: color,
-                                    stroke: 'white',
-                                    strokeWidth: '3',
-                                    className: 'hover:r-6 transition-all cursor-pointer'
-                                })
-                            ),
-                            
-                            // Value labels with better positioning
-                            ...points.map((point, index) => 
-                                e('text', {
-                                    key: `label-${index}`,
-                                    x: point.x,
-                                    y: point.y - 12,
-                                    textAnchor: 'middle',
-                                    fontSize: '4',
-                                    fill: color,
-                                    fontWeight: 'bold',
-                                    className: 'pointer-events-none'
-                                }, (point.value / 1000).toFixed(0) + 'k') // Show in thousands
-                            )
-                        ])
-                    ]),
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+                
+                const ctx = canvas.getContext('2d');
+                const rect = canvas.getBoundingClientRect();
+                
+                // Set canvas size
+                canvas.width = rect.width * 2; // For high DPI
+                canvas.height = (height - 100) * 2;
+                ctx.scale(2, 2);
+                
+                const width = rect.width;
+                const chartHeight = height - 100;
+                const padding = 40;
+                const chartWidth = width - (padding * 2);
+                const chartAreaHeight = chartHeight - (padding * 2);
+                
+                // Calculate data ranges
+                const maxValue = Math.max(...data.map(d => d[dataKey]));
+                const minValue = Math.min(...data.map(d => d[dataKey]));
+                const range = maxValue - minValue;
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, width, chartHeight);
+                
+                // Draw grid
+                ctx.strokeStyle = '#f0f0f0';
+                ctx.lineWidth = 1;
+                for (let i = 0; i <= 5; i++) {
+                    const y = padding + (i * chartAreaHeight / 5);
+                    ctx.beginPath();
+                    ctx.moveTo(padding, y);
+                    ctx.lineTo(width - padding, y);
+                    ctx.stroke();
+                }
+                
+                // Calculate points
+                const points = data.map((item, index) => {
+                    const x = padding + (index / (data.length - 1)) * chartWidth;
+                    const y = padding + chartAreaHeight - ((item[dataKey] - minValue) / range) * chartAreaHeight;
+                    return { x, y, value: item[dataKey], label: item[nameKey] };
+                });
+                
+                // Draw area under line
+                ctx.fillStyle = color + '20';
+                ctx.beginPath();
+                ctx.moveTo(points[0].x, chartHeight - padding);
+                points.forEach(point => ctx.lineTo(point.x, point.y));
+                ctx.lineTo(points[points.length - 1].x, chartHeight - padding);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Draw line
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(points[0].x, points[0].y);
+                points.forEach(point => ctx.lineTo(point.x, point.y));
+                ctx.stroke();
+                
+                // Draw points
+                points.forEach((point, index) => {
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, 4, 0, 2 * Math.PI);
+                    ctx.fill();
                     
-                    // X-axis with properly aligned labels
-                    e('div', { key: 'x-axis', className: 'absolute bottom-4 left-8 right-8 h-16' }, [
-                        e('div', { key: 'axis-line', className: 'w-full h-px bg-gray-300 mb-4' }),
-                        e('div', { key: 'labels', className: 'relative flex' },
-                            data.map((item, index) => 
-                                e('div', { 
-                                    key: index, 
-                                    className: 'text-sm text-gray-700 font-medium text-center',
-                                    style: { 
-                                        position: 'absolute',
-                                        left: `${(index / Math.max(data.length - 1, 1)) * 100}%`,
-                                        transform: 'translateX(-50%)',
-                                        whiteSpace: 'nowrap'
-                                    }
-                                }, item[nameKey])
-                            )
+                    ctx.fillStyle = 'white';
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, 2, 0, 2 * Math.PI);
+                    ctx.fill();
+                });
+                
+                // Draw Y-axis labels
+                ctx.fillStyle = '#666';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'right';
+                for (let i = 0; i <= 5; i++) {
+                    const value = minValue + (range * (5 - i) / 5);
+                    const y = padding + (i * chartAreaHeight / 5);
+                    ctx.fillText((value / 1000).toFixed(0) + 'k', padding - 10, y + 4);
+                }
+                
+            }, [data, dataKey, height, color]);
+            
+            return e('div', { className: 'space-y-4' }, [
+                e('div', { key: 'chart-container', className: 'relative bg-white rounded-lg border p-4', style: { height: `${height}px` } }, [
+                    // Canvas
+                    e('canvas', {
+                        key: 'canvas',
+                        ref: canvasRef,
+                        className: 'w-full cursor-crosshair',
+                        style: { height: `${height - 100}px` }
+                    }),
+                    
+                    // X-axis labels
+                    e('div', { key: 'x-labels', className: 'flex justify-between px-10 mt-2' },
+                        data.map((item, index) => 
+                            e('div', { 
+                                key: index, 
+                                className: 'text-xs text-gray-600 text-center transform -rotate-45 origin-center',
+                                style: { fontSize: '11px' }
+                            }, item[nameKey])
                         )
-                    ])
+                    )
                 ]),
                 
-                // Data table
-                e('div', { key: 'table', className: 'bg-gray-50 rounded-lg p-4' }, [
-                    e('h4', { key: 'table-title', className: 'text-lg font-semibold mb-4 text-gray-700' }, 'Detailgegevens'),
-                    e('div', { key: 'table-container', className: 'overflow-x-auto' }, [
-                        e('table', { key: 'table', className: 'w-full text-sm' }, [
-                            e('thead', { key: 'thead' }, [
-                                e('tr', { key: 'header-row', className: 'border-b border-gray-300' }, [
-                                    e('th', { key: 'period', className: 'text-left py-2 px-3 font-semibold text-gray-700' }, 'Periode'),
-                                    e('th', { key: 'requests', className: 'text-right py-2 px-3 font-semibold text-gray-700' }, 'Requests'),
-                                    e('th', { key: 'change', className: 'text-right py-2 px-3 font-semibold text-gray-700' }, 'Verandering')
-                                ])
-                            ]),
-                            e('tbody', { key: 'tbody' },
-                                data.map((item, index) => {
-                                    const prevValue = index > 0 ? data[index - 1][dataKey] : item[dataKey];
-                                    const change = index > 0 ? item[dataKey] - prevValue : 0;
-                                    const changePercent = index > 0 && prevValue > 0 ? ((change / prevValue) * 100) : 0;
-                                    
-                                    return e('tr', { 
-                                        key: index,
-                                        className: `border-b border-gray-200 hover:bg-gray-100 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`
-                                    }, [
-                                        e('td', { key: 'period', className: 'py-2 px-3 font-medium' }, item[nameKey]),
-                                        e('td', { key: 'requests', className: 'py-2 px-3 text-right font-mono' }, item[dataKey].toLocaleString()),
-                                        e('td', { key: 'change', className: 'py-2 px-3 text-right' }, 
-                                            index === 0 ? '-' : 
-                                            e('span', { 
-                                                className: `font-medium ${change >= 0 ? 'text-green-600' : 'text-red-600'}`
-                                            }, `${change >= 0 ? '+' : ''}${change.toLocaleString()} (${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(1)}%)`)
-                                        )
-                                    ]);
-                                })
-                            )
-                        ])
+                // Simple stats
+                e('div', { key: 'stats', className: 'grid grid-cols-3 gap-4 text-sm' }, [
+                    e('div', { key: 'total', className: 'text-center p-3 bg-blue-50 rounded-lg' }, [
+                        e('div', { key: 'value', className: 'text-lg font-bold text-blue-600' }, 
+                            (data.reduce((sum, d) => sum + d[dataKey], 0) / 1000).toFixed(0) + 'k'
+                        ),
+                        e('div', { key: 'label', className: 'text-gray-600' }, 'Totaal')
+                    ]),
+                    e('div', { key: 'avg', className: 'text-center p-3 bg-green-50 rounded-lg' }, [
+                        e('div', { key: 'value', className: 'text-lg font-bold text-green-600' }, 
+                            (data.reduce((sum, d) => sum + d[dataKey], 0) / data.length / 1000).toFixed(0) + 'k'
+                        ),
+                        e('div', { key: 'label', className: 'text-gray-600' }, 'Gemiddeld')
+                    ]),
+                    e('div', { key: 'max', className: 'text-center p-3 bg-orange-50 rounded-lg' }, [
+                        e('div', { key: 'value', className: 'text-lg font-bold text-orange-600' }, 
+                            (Math.max(...data.map(d => d[dataKey])) / 1000).toFixed(0) + 'k'
+                        ),
+                        e('div', { key: 'label', className: 'text-gray-600' }, 'Hoogste')
                     ])
-                ]),
-                
-                // Summary
-                e('div', { key: 'summary', className: 'text-center text-base text-gray-600 bg-blue-50 rounded-lg p-4' },
-                    `Totaal: ${data.reduce((sum, d) => sum + d[dataKey], 0).toLocaleString()} requests over ${data.length} periodes`
-                )
+                ])
             ]);
         };
 
@@ -1735,7 +1707,7 @@
                                         dataKey: 'requests', 
                                         nameKey: 'month', 
                                         color: '#3b82f6',
-                                        height: 500
+                                        height: 400
                                     })
                                 ]
                             ),
