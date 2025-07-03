@@ -5,18 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IPC Requests Analyse Dashboard</title>
     
-    <!-- Core Libraries with fallbacks -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    
-    <!-- Fallback React from different CDN -->
-    <script>
-        if (typeof React === 'undefined') {
-            console.log('Loading React from alternative CDN...');
-            document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.min.js"><\/script>');
-            document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.min.js"><\/script>');
-        }
-    </script>
+    <!-- Core Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     
     <!-- Data Processing Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -49,21 +40,47 @@
         .bg-red-50 { background-color: #fef2f2; }
         .bg-red-600 { background-color: #dc2626; }
         .bg-yellow-50 { background-color: #fffbeb; }
+        .bg-yellow-100 { background-color: #fef3c7; }
         .bg-yellow-900 { background-color: #78350f; }
+        .bg-orange-100 { background-color: #ffedd5; }
+        .bg-orange-900 { background-color: #9a3412; }
+        .bg-purple-100 { background-color: #f3e8ff; }
+        .bg-purple-900 { background-color: #581c87; }
+        .bg-cyan-100 { background-color: #cffafe; }
+        .bg-cyan-900 { background-color: #164e63; }
+        .bg-teal-100 { background-color: #ccfbf1; }
+        .bg-teal-900 { background-color: #134e4a; }
         
         .text-white { color: #ffffff; }
         .text-gray-300 { color: #d1d5db; }
+        .text-gray-400 { color: #9ca3af; }
+        .text-gray-500 { color: #6b7280; }
         .text-gray-600 { color: #4b5563; }
         .text-gray-700 { color: #374151; }
         .text-gray-900 { color: #111827; }
         .text-blue-600 { color: #2563eb; }
         .text-blue-700 { color: #1d4ed8; }
+        .text-blue-800 { color: #1e40af; }
+        .text-blue-200 { color: #bfdbfe; }
         .text-green-600 { color: #16a34a; }
         .text-green-700 { color: #15803d; }
+        .text-green-800 { color: #166534; }
+        .text-green-200 { color: #bbf7d0; }
         .text-red-600 { color: #dc2626; }
         .text-red-700 { color: #b91c1c; }
-        .text-yellow-600 { color: #d97706; }
-        .text-yellow-800 { color: #92400e; }
+        .text-red-800 { color: #991b1b; }
+        .text-orange-800 { color: #9a3412; }
+        .text-orange-200 { color: #fed7aa; }
+        .text-purple-800 { color: #6b21a8; }
+        .text-purple-200 { color: #e9d5ff; }
+        .text-yellow-600 { color: #ca8a04; }
+        .text-yellow-700 { color: #a16207; }
+        .text-yellow-800 { color: #854d0e; }
+        .text-yellow-200 { color: #fef08a; }
+        .text-cyan-800 { color: #155e75; }
+        .text-cyan-200 { color: #a5f3fc; }
+        .text-teal-800 { color: #115e59; }
+        .text-teal-200 { color: #99f6e4; }
         
         .border { border: 1px solid #e5e7eb; }
         .border-gray-300 { border-color: #d1d5db; }
@@ -78,10 +95,13 @@
         .rounded { border-radius: 0.25rem; }
         .rounded-lg { border-radius: 0.5rem; }
         .rounded-full { border-radius: 9999px; }
+        .rounded-t-lg { border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; }
+        .rounded-b-lg { border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem; }
         
         .shadow-sm { box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); }
         .shadow-lg { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05); }
         
+        .p-1 { padding: 0.25rem; }
         .p-2 { padding: 0.5rem; }
         .p-3 { padding: 0.75rem; }
         .p-4 { padding: 1rem; }
@@ -98,6 +118,7 @@
         
         .m-2 { margin: 0.5rem; }
         .m-4 { margin: 1rem; }
+        .mb-1 { margin-bottom: 0.25rem; }
         .mb-2 { margin-bottom: 0.5rem; }
         .mb-4 { margin-bottom: 1rem; }
         .mb-6 { margin-bottom: 1.5rem; }
@@ -146,7 +167,6 @@
         
         .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
         .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
         
         .text-xs { font-size: 0.75rem; }
         .text-sm { font-size: 0.875rem; }
@@ -164,9 +184,11 @@
         .text-left { text-align: left; }
         
         .cursor-pointer { cursor: pointer; }
+        .select-none { user-select: none; }
         
         .overflow-hidden { overflow: hidden; }
         .overflow-y-auto { overflow-y: auto; }
+        .overflow-x-auto { overflow-x: auto; }
         
         .relative { position: relative; }
         .absolute { position: absolute; }
@@ -177,7 +199,7 @@
         .top-1\/2 { top: 50%; }
         .z-50 { z-index: 50; }
         
-        .transform { transform: translate(var(--tw-translate-x), var(--tw-translate-y)); }
+        .transform { transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y)); }
         .-translate-y-1\/2 { --tw-translate-y: -50%; transform: translate(var(--tw-translate-x), var(--tw-translate-y)); }
         
         .transition-colors { transition: color 0.3s, background-color 0.3s, border-color 0.3s; }
@@ -196,6 +218,7 @@
         .focus\:ring-blue-500:focus { box-shadow: 0 0 0 2px #3b82f6; }
         
         .border-l-4 { border-left-width: 4px; }
+        .border-t { border-top-width: 1px; }
         .border-dashed { border-style: dashed; }
         
         .file-upload-area {
@@ -263,6 +286,10 @@
             background-color: #111827;
         }
         
+        .dark .bg-gray-100 {
+            background-color: #374151;
+        }
+        
         .dark .text-gray-600 {
             color: #9ca3af;
         }
@@ -311,40 +338,38 @@
     <div id="root"></div>
 
     <script>
-        // Wait for libraries to load with timeout
-        function waitForLibraries() {
-            return new Promise((resolve, reject) => {
-                let attempts = 0;
-                const maxAttempts = 50; // 5 seconds
-                
-                const checkLibraries = () => {
-                    attempts++;
-                    console.log(`Checking libraries... attempt ${attempts}`);
-                    
-                    if (typeof React !== 'undefined' && typeof ReactDOM !== 'undefined' && typeof XLSX !== 'undefined' && typeof _ !== 'undefined') {
-                        console.log('All libraries loaded successfully!');
-                        resolve();
-                    } else if (attempts >= maxAttempts) {
-                        console.error('Libraries failed to load after timeout');
-                        reject(new Error('Libraries failed to load'));
-                    } else {
-                        setTimeout(checkLibraries, 100);
-                    }
-                };
-                
-                checkLibraries();
-            });
-        }
-        
-        // Start the app when libraries are ready
-        waitForLibraries().then(() => {
-            console.log('React:', typeof React);
-            console.log('ReactDOM:', typeof ReactDOM);
-            console.log('XLSX:', typeof XLSX);
-            console.log('Lodash:', typeof _);
+        // Better loading strategy - wait for all scripts
+        function initApp() {
+            // Check if all required libraries are loaded
+            if (typeof React === 'undefined') {
+                console.error('React not loaded, retrying...');
+                setTimeout(initApp, 100);
+                return;
+            }
+            
+            if (typeof ReactDOM === 'undefined') {
+                console.error('ReactDOM not loaded, retrying...');
+                setTimeout(initApp, 100);
+                return;
+            }
+            
+            if (typeof XLSX === 'undefined') {
+                console.error('XLSX not loaded, retrying...');
+                setTimeout(initApp, 100);
+                return;
+            }
+            
+            if (typeof _ === 'undefined') {
+                console.error('Lodash not loaded, retrying...');
+                setTimeout(initApp, 100);
+                return;
+            }
+
+            console.log('All libraries loaded successfully');
+            console.log('React version:', React.version);
             
             const { useState, useEffect, useMemo, useCallback, useRef, createElement: e } = React;
-            const { createRoot } = ReactDOM;
+            const { render } = ReactDOM;
 
         // Icon Components
         const Upload = ({ className }) => e('svg', {
@@ -372,6 +397,18 @@
             e('path', { key: 4, d: "M8 16H3v5" })
         ]);
 
+        const AlertTriangle = ({ className }) => e('svg', {
+            className,
+            xmlns: "http://www.w3.org/2000/svg",
+            width: "24", height: "24", viewBox: "0 0 24 24",
+            fill: "none", stroke: "currentColor", strokeWidth: "2",
+            strokeLinecap: "round", strokeLinejoin: "round"
+        }, [
+            e('path', { key: 1, d: "m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" }),
+            e('path', { key: 2, d: "M12 9v4" }),
+            e('path', { key: 3, d: "m12 17 .01 0" })
+        ]);
+
         const Download = ({ className }) => e('svg', {
             className,
             xmlns: "http://www.w3.org/2000/svg",
@@ -384,6 +421,99 @@
             e('line', { key: 3, x1: "12", x2: "12", y1: "15", y2: "3" })
         ]);
 
+        const Search = ({ className }) => e('svg', {
+            className,
+            xmlns: "http://www.w3.org/2000/svg",
+            width: "24", height: "24", viewBox: "0 0 24 24",
+            fill: "none", stroke: "currentColor", strokeWidth: "2",
+            strokeLinecap: "round", strokeLinejoin: "round"
+        }, [
+            e('circle', { key: 1, cx: "11", cy: "11", r: "8" }),
+            e('path', { key: 2, d: "m21 21-4.35-4.35" })
+        ]);
+
+        const Filter = ({ className }) => e('svg', {
+            className,
+            xmlns: "http://www.w3.org/2000/svg",
+            width: "24", height: "24", viewBox: "0 0 24 24",
+            fill: "none", stroke: "currentColor", strokeWidth: "2",
+            strokeLinecap: "round", strokeLinejoin: "round"
+        }, [
+            e('polygon', { key: 1, points: "22,3 2,3 10,12.46 10,19 14,21 14,12.46" })
+        ]);
+
+        const TrendingUp = ({ className }) => e('svg', {
+            className,
+            xmlns: "http://www.w3.org/2000/svg",
+            width: "24", height: "24", viewBox: "0 0 24 24",
+            fill: "none", stroke: "currentColor", strokeWidth: "2",
+            strokeLinecap: "round", strokeLinejoin: "round"
+        }, [
+            e('polyline', { key: 1, points: "22,7 13.5,15.5 8.5,10.5 2,17" }),
+            e('polyline', { key: 2, points: "16,7 22,7 22,13" })
+        ]);
+
+        const Users = ({ className }) => e('svg', {
+            className,
+            xmlns: "http://www.w3.org/2000/svg",
+            width: "24", height: "24", viewBox: "0 0 24 24",
+            fill: "none", stroke: "currentColor", strokeWidth: "2",
+            strokeLinecap: "round", strokeLinejoin: "round"
+        }, [
+            e('path', { key: 1, d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" }),
+            e('circle', { key: 2, cx: "9", cy: "7", r: "4" }),
+            e('path', { key: 3, d: "m22 21-1.5-1.5" })
+        ]);
+
+        const Package = ({ className }) => e('svg', {
+            className,
+            xmlns: "http://www.w3.org/2000/svg",
+            width: "24", height: "24", viewBox: "0 0 24 24",
+            fill: "none", stroke: "currentColor", strokeWidth: "2",
+            strokeLinecap: "round", strokeLinejoin: "round"
+        }, [
+            e('path', { key: 1, d: "m7.5 4.27 9 5.15" }),
+            e('path', { key: 2, d: "M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" }),
+            e('path', { key: 3, d: "m3.3 7 8.7 5 8.7-5" }),
+            e('path', { key: 4, d: "M12 22V12" })
+        ]);
+
+        const Database = ({ className }) => e('svg', {
+            className,
+            xmlns: "http://www.w3.org/2000/svg",
+            width: "24", height: "24", viewBox: "0 0 24 24",
+            fill: "none", stroke: "currentColor", strokeWidth: "2",
+            strokeLinecap: "round", strokeLinejoin: "round"
+        }, [
+            e('ellipse', { key: 1, cx: "12", cy: "5", rx: "9", ry: "3" }),
+            e('path', { key: 2, d: "M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5" }),
+            e('path', { key: 3, d: "M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3" })
+        ]);
+
+        const Calendar = ({ className }) => e('svg', {
+            className,
+            xmlns: "http://www.w3.org/2000/svg",
+            width: "24", height: "24", viewBox: "0 0 24 24",
+            fill: "none", stroke: "currentColor", strokeWidth: "2",
+            strokeLinecap: "round", strokeLinejoin: "round"
+        }, [
+            e('path', { key: 1, d: "M8 2v4" }),
+            e('path', { key: 2, d: "M16 2v4" }),
+            e('rect', { key: 3, width: "18", height: "18", x: "3", y: "4", rx: "2" }),
+            e('path', { key: 4, d: "M3 10h18" })
+        ]);
+
+        const Eye = ({ className }) => e('svg', {
+            className,
+            xmlns: "http://www.w3.org/2000/svg",
+            width: "24", height: "24", viewBox: "0 0 24 24",
+            fill: "none", stroke: "currentColor", strokeWidth: "2",
+            strokeLinecap: "round", strokeLinejoin: "round"
+        }, [
+            e('path', { key: 1, d: "M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" }),
+            e('circle', { key: 2, cx: "12", cy: "12", r: "3" })
+        ]);
+
         const Sun = ({ className }) => e('svg', {
             className,
             xmlns: "http://www.w3.org/2000/svg",
@@ -393,7 +523,13 @@
         }, [
             e('circle', { key: 1, cx: "12", cy: "12", r: "4" }),
             e('path', { key: 2, d: "M12 2v2" }),
-            e('path', { key: 3, d: "M12 20v2" })
+            e('path', { key: 3, d: "M12 20v2" }),
+            e('path', { key: 4, d: "m4.93 4.93 1.41 1.41" }),
+            e('path', { key: 5, d: "m17.66 17.66 1.41 1.41" }),
+            e('path', { key: 6, d: "M2 12h2" }),
+            e('path', { key: 7, d: "M20 12h2" }),
+            e('path', { key: 8, d: "m6.34 17.66-1.41 1.41" }),
+            e('path', { key: 9, d: "m19.07 4.93-1.41 1.41" })
         ]);
 
         const Moon = ({ className }) => e('svg', {
@@ -406,16 +542,191 @@
             e('path', { key: 1, d: "M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" })
         ]);
 
+        // Simple chart components
+        const SimpleBarChart = ({ data, dataKey, nameKey, color = '#3b82f6', height = 300 }) => {
+            if (!data || data.length === 0) return e('div', { className: 'text-center py-8 text-gray-500' }, 'Geen data beschikbaar');
+            
+            const maxValue = Math.max(...data.map(d => d[dataKey]));
+            
+            return e('div', { className: 'space-y-2', style: { height: `${height}px`, overflowY: 'auto' } },
+                data.map((item, index) => 
+                    e('div', { key: index, className: 'flex items-center gap-3' }, [
+                        e('div', { 
+                            key: 'label', 
+                            className: 'text-sm font-medium w-32 truncate', 
+                            title: item[nameKey] 
+                        }, item[nameKey]),
+                        e('div', { key: 'bar-container', className: 'flex-1 bg-gray-200 rounded-full h-6 flex items-center' }, [
+                            e('div', {
+                                key: 'bar',
+                                className: 'h-4 rounded-full transition-all duration-500',
+                                style: { 
+                                    width: `${(item[dataKey] / maxValue) * 100}%`,
+                                    backgroundColor: color
+                                }
+                            }),
+                            e('span', { 
+                                key: 'value', 
+                                className: 'ml-2 text-xs font-medium text-gray-600' 
+                            }, item[dataKey].toLocaleString())
+                        ])
+                    ])
+                )
+            );
+        };
+
+        const SimplePieChart = ({ data, dataKey, nameKey, colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b'] }) => {
+            if (!data || data.length === 0) return e('div', { className: 'text-center py-8 text-gray-500' }, 'Geen data beschikbaar');
+            
+            const total = data.reduce((sum, item) => sum + item[dataKey], 0);
+            
+            return e('div', { className: 'space-y-4' }, [
+                e('div', { key: 'visual', className: 'flex rounded-full overflow-hidden h-8 bg-gray-200 shadow-inner' },
+                    data.map((item, index) => {
+                        const percentage = (item[dataKey] / total) * 100;
+                        return e('div', {
+                            key: index,
+                            className: 'transition-all duration-700 hover:brightness-110',
+                            style: { 
+                                width: `${percentage}%`,
+                                backgroundColor: colors[index % colors.length]
+                            },
+                            title: `${item[nameKey]}: ${item[dataKey].toLocaleString()} (${percentage.toFixed(1)}%)`
+                        });
+                    })
+                ),
+                
+                e('div', { key: 'legend', className: 'grid grid-cols-1 gap-3' },
+                    data.map((item, index) => {
+                        const percentage = ((item[dataKey] / total) * 100).toFixed(1);
+                        return e('div', { key: index, className: 'flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors' }, [
+                            e('div', { key: 'info', className: 'flex items-center gap-3' }, [
+                                e('div', { 
+                                    key: 'color', 
+                                    className: 'w-4 h-4 rounded-full shadow-sm',
+                                    style: { backgroundColor: colors[index % colors.length] }
+                                }),
+                                e('span', { key: 'name', className: 'text-sm font-medium text-gray-700' }, item[nameKey])
+                            ]),
+                            e('div', { key: 'stats', className: 'text-right' }, [
+                                e('div', { key: 'value', className: 'text-sm font-bold text-gray-900' }, item[dataKey].toLocaleString()),
+                                e('div', { key: 'percentage', className: 'text-xs text-gray-500' }, `${percentage}%`)
+                            ])
+                        ]);
+                    })
+                ),
+                
+                e('div', { key: 'summary', className: 'text-center text-sm text-gray-600 bg-blue-50 rounded p-2' },
+                    `Totaal: ${total.toLocaleString()} requests verdeeld over ${data.length} environments`
+                )
+            ]);
+        };
+
+        const SimpleAreaChart = ({ data, dataKey, nameKey, color = '#3b82f6', height = 300 }) => {
+            if (!data || data.length === 0) return e('div', { className: 'text-center py-8 text-gray-500' }, 'Geen data beschikbaar');
+            
+            const maxValue = Math.max(...data.map(d => d[dataKey]));
+            const minValue = Math.min(...data.map(d => d[dataKey]));
+            const range = maxValue - minValue;
+            
+            return e('div', { className: 'space-y-4' }, [
+                e('div', { key: 'chart', className: 'relative bg-gray-50 rounded-lg p-4 overflow-x-auto', style: { height: `${height}px` } }, [
+                    e('div', { key: 'y-axis', className: 'absolute left-0 top-4 bottom-8 w-16 flex flex-col justify-between text-xs text-gray-600' }, [
+                        e('span', { key: 'max' }, maxValue.toLocaleString()),
+                        e('span', { key: 'mid' }, Math.round((maxValue + minValue) / 2).toLocaleString()),
+                        e('span', { key: 'min' }, minValue.toLocaleString())
+                    ]),
+                    
+                    e('div', { key: 'chart-area', className: 'ml-16 h-full flex items-end', style: { minWidth: `${data.length * 60}px` } },
+                        data.map((item, index) => {
+                            const heightPercent = range > 0 ? ((item[dataKey] - minValue) / range) * 80 + 10 : 50;
+                            return e('div', { key: index, className: 'flex-1 flex flex-col items-center gap-2 px-1' }, [
+                                e('div', { key: 'value', className: 'text-xs font-medium text-gray-700 mb-1' }, 
+                                    item[dataKey].toLocaleString()
+                                ),
+                                e('div', {
+                                    key: 'bar',
+                                    className: 'w-8 transition-all duration-500 rounded-t-sm opacity-80 hover:opacity-100',
+                                    style: { 
+                                        height: `${heightPercent}%`,
+                                        backgroundColor: color,
+                                        minHeight: '4px'
+                                    },
+                                    title: `${item[nameKey]}: ${item[dataKey].toLocaleString()}`
+                                }),
+                                e('div', { 
+                                    key: 'label', 
+                                    className: 'text-xs text-gray-600 text-center leading-tight mt-2',
+                                    style: { 
+                                        writingMode: 'vertical-rl', 
+                                        textOrientation: 'mixed',
+                                        height: '40px',
+                                        fontSize: '10px'
+                                    }
+                                }, item[nameKey])
+                            ]);
+                        })
+                    )
+                ]),
+                e('div', { key: 'summary', className: 'text-center text-sm text-gray-600 bg-gray-100 rounded p-2' },
+                    `Totaal: ${data.reduce((sum, d) => sum + d[dataKey], 0).toLocaleString()} requests over ${data.length} periodes`
+                )
+            ]);
+        };
+
         // Main Component
         const IpcAnalysisTool = () => {
             const [data, setData] = useState([]);
+            const [filteredData, setFilteredData] = useState([]);
             const [loading, setLoading] = useState(false);
             const [darkMode, setDarkMode] = useState(false);
             const [fileUploaded, setFileUploaded] = useState(false);
             const [uploadError, setUploadError] = useState(null);
+            const [notifications, setNotifications] = useState([]);
+            const [filters, setFilters] = useState({
+                environment: [],
+                insurer: [],
+                product: [],
+                user: [],
+                selectedYear: 'all',
+                selectedMonth: 'all',
+                searchTerm: ''
+            });
+            const [uniqueValues, setUniqueValues] = useState({
+                environments: [],
+                insurers: [],
+                products: [],
+                users: [],
+                years: [],
+                months: []
+            });
 
             const fileInputRef = useRef(null);
 
+            // Helper functions
+            const categorizeUser = (user, aantal) => {
+                if (!user || user === 'NULL') return 'Unknown';
+                if (aantal > 10000) return 'Enterprise';
+                if (aantal > 1000) return 'Large';
+                if (aantal > 100) return 'Medium';
+                return 'Small';
+            };
+
+            const categorizeProduct = (product) => {
+                if (!product) return 'Unknown';
+                if (product.toLowerCase().includes('auto')) return 'Auto';
+                if (product.toLowerCase().includes('woning')) return 'Property';
+                if (product.toLowerCase().includes('aansprakelijk')) return 'Liability';
+                return 'Other';
+            };
+
+            const calculateCompleteness = (row) => {
+                const fields = ['Environment', 'YyyyMm', 'Engine', 'Insurer', 'Product', 'Gebruiker', 'Aantal'];
+                const validFields = fields.filter(field => row[field] && row[field] !== 'NULL' && row[field] !== null);
+                return (validFields.length / fields.length) * 100;
+            };
+
+            // File upload handler
             const handleFileUpload = async (file) => {
                 if (!file) return;
 
@@ -424,7 +735,13 @@
                     setUploadError(null);
                     
                     const arrayBuffer = await file.arrayBuffer();
-                    const workbook = XLSX.read(arrayBuffer);
+                    const workbook = XLSX.read(arrayBuffer, {
+                        cellStyles: true,
+                        cellFormulas: true,
+                        cellDates: true,
+                        cellNF: true,
+                        sheetStubs: true
+                    });
 
                     if (!workbook.SheetNames.includes('Data')) {
                         throw new Error('Excel bestand moet een "Data" sheet bevatten');
@@ -437,18 +754,292 @@
                         throw new Error('Data sheet is leeg');
                     }
 
-                    console.log('Data geladen:', rawData.length, 'records');
-                    setData(rawData);
+                    console.log('Raw data length:', rawData.length);
+
+                    const processedData = rawData.map((row, index) => {
+                        const date = row.YyyyMm ? new Date(row.YyyyMm) : null;
+                        const monthNames = ['Jan', 'Feb', 'Mrt', 'Apr', 'Mei', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
+                        
+                        const actualUser = (row.GebruikerVe && row.GebruikerVe !== '(geen VE_MYAAND)' && row.GebruikerVe.trim() !== '') 
+                            ? row.GebruikerVe 
+                            : row.Gebruiker;
+                        
+                        return {
+                            ...row,
+                            id: index,
+                            YyyyMm: date,
+                            Aantal: parseInt(row.Aantal) || 0,
+                            month: date ? `${monthNames[date.getMonth()]} ${date.getFullYear()}` : 'Onbekend',
+                            monthKey: date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}` : 'unknown',
+                            year: date ? date.getFullYear() : 'Onbekend',
+                            actualUser: actualUser,
+                            userCategory: categorizeUser(actualUser, row.Aantal),
+                            productCategory: categorizeProduct(row.Product),
+                            hasValidDate: !!date,
+                            hasValidUser: !!actualUser && actualUser !== 'NULL',
+                            completeness: calculateCompleteness(row)
+                        };
+                    });
+
+                    console.log('Processed data length:', processedData.length);
+
+                    setData(processedData);
+                    setFilteredData(processedData);
+
+                    const allEnvironments = _.uniq(processedData.map(d => d.Environment)).filter(Boolean);
+                    const allInsurers = _.uniq(processedData.map(d => d.Insurer)).filter(Boolean).sort();
+                    const allProducts = _.uniq(processedData.map(d => d.Product)).filter(Boolean).sort();
+                    const allUsers = _.uniq(processedData.map(d => d.actualUser)).filter(d => d && d !== 'NULL' && d.trim() !== '').sort();
+                    const allYears = _.uniq(processedData.filter(d => d.YyyyMm).map(d => d.YyyyMm.getFullYear())).sort().reverse();
+
+                    console.log('Unique values extracted:');
+                    console.log('Environments:', allEnvironments.length, allEnvironments);
+                    console.log('Insurers:', allInsurers.length);
+                    console.log('Products:', allProducts.length);
+                    console.log('Users:', allUsers.length);
+
+                    setUniqueValues({
+                        environments: allEnvironments,
+                        insurers: allInsurers,
+                        products: allProducts,
+                        users: allUsers,
+                        years: allYears,
+                        months: [
+                            { value: 1, label: 'Januari' },
+                            { value: 2, label: 'Februari' },
+                            { value: 3, label: 'Maart' },
+                            { value: 4, label: 'April' },
+                            { value: 5, label: 'Mei' },
+                            { value: 6, label: 'Juni' },
+                            { value: 7, label: 'Juli' },
+                            { value: 8, label: 'Augustus' },
+                            { value: 9, label: 'September' },
+                            { value: 10, label: 'Oktober' },
+                            { value: 11, label: 'November' },
+                            { value: 12, label: 'December' }
+                        ]
+                    });
+
                     setFileUploaded(true);
+                    addNotification('success', `${processedData.length.toLocaleString()} records succesvol geladen`);
                     
                 } catch (error) {
                     console.error('Error loading data:', error);
                     setUploadError(error.message);
+                    addNotification('error', `Fout bij laden: ${error.message}`);
                 } finally {
                     setLoading(false);
                 }
             };
 
+            // Get filtered products based on selected insurers
+            const getFilteredProducts = () => {
+                if (filters.insurer.length === 0) {
+                    return [];
+                }
+                
+                const filteredByInsurer = data.filter(d => filters.insurer.includes(d.Insurer));
+                const products = _.uniq(filteredByInsurer.map(d => d.Product)).filter(Boolean).sort();
+                return products;
+            };
+
+            // Get filtered users based on selected insurers and products
+            const getFilteredUsers = () => {
+                let baseData = data;
+                
+                if (filters.insurer.length > 0) {
+                    baseData = baseData.filter(d => filters.insurer.includes(d.Insurer));
+                }
+                if (filters.product.length > 0) {
+                    baseData = baseData.filter(d => filters.product.includes(d.Product));
+                }
+                
+                const users = _.uniq(baseData.map(d => d.actualUser)).filter(d => d && d !== 'NULL' && d.trim() !== '').sort();
+                return users;
+            };
+
+            // Notification system
+            const addNotification = (type, message) => {
+                const id = Date.now();
+                setNotifications(prev => [...prev, { id, type, message, timestamp: new Date() }]);
+                setTimeout(() => {
+                    setNotifications(prev => prev.filter(n => n.id !== id));
+                }, 5000);
+            };
+
+            // Apply filters
+            const applyFilters = useCallback(() => {
+                let filtered = [...data];
+
+                if (filters.environment.length > 0) {
+                    filtered = filtered.filter(d => filters.environment.includes(d.Environment));
+                }
+                if (filters.insurer.length > 0) {
+                    filtered = filtered.filter(d => filters.insurer.includes(d.Insurer));
+                }
+                if (filters.product.length > 0) {
+                    filtered = filtered.filter(d => filters.product.includes(d.Product));
+                }
+                if (filters.user.length > 0) {
+                    filtered = filtered.filter(d => filters.user.includes(d.actualUser));
+                }
+
+                if (filters.selectedYear !== 'all') {
+                    filtered = filtered.filter(d => d.YyyyMm && d.YyyyMm.getFullYear() === parseInt(filters.selectedYear));
+                }
+                if (filters.selectedMonth !== 'all') {
+                    filtered = filtered.filter(d => d.YyyyMm && (d.YyyyMm.getMonth() + 1) === parseInt(filters.selectedMonth));
+                }
+
+                if (filters.searchTerm) {
+                    const searchLower = filters.searchTerm.toLowerCase();
+                    filtered = filtered.filter(d => 
+                        (d.Insurer && d.Insurer.toLowerCase().includes(searchLower)) ||
+                        (d.Product && d.Product.toLowerCase().includes(searchLower)) ||
+                        (d.actualUser && d.actualUser.toLowerCase().includes(searchLower)) ||
+                        (d.Engine && d.Engine.toLowerCase().includes(searchLower))
+                    );
+                }
+
+                setFilteredData(filtered);
+            }, [data, filters]);
+
+            useEffect(() => {
+                applyFilters();
+            }, [applyFilters]);
+
+            // Statistics
+            const stats = useMemo(() => {
+                const totalRequests = filteredData.reduce((sum, d) => sum + d.Aantal, 0);
+                const uniqueUsers = _.uniq(filteredData.map(d => d.actualUser)).length;
+                const uniqueProducts = _.uniq(filteredData.map(d => d.Product)).length;
+                const uniqueInsurers = _.uniq(filteredData.map(d => d.Insurer)).length;
+                const avgPerMonth = filteredData.length > 0 ? Math.round(totalRequests / _.uniq(filteredData.map(d => d.month)).length) : 0;
+                const dataQuality = _.mean(filteredData.map(d => d.completeness)) || 0;
+
+                return {
+                    totalRequests,
+                    uniqueUsers,
+                    uniqueProducts,
+                    uniqueInsurers,
+                    avgPerMonth,
+                    totalRecords: filteredData.length,
+                    dataQuality
+                };
+            }, [filteredData]);
+
+            // Chart data
+            const getMonthlyData = () => {
+                const grouped = _.groupBy(filteredData.filter(d => d.YyyyMm), d => {
+                    const date = new Date(d.YyyyMm);
+                    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                });
+                
+                return Object.entries(grouped)
+                    .map(([monthKey, records]) => {
+                        const [year, month] = monthKey.split('-');
+                        const monthNames = ['Jan', 'Feb', 'Mrt', 'Apr', 'Mei', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
+                        const monthName = monthNames[parseInt(month) - 1];
+                        
+                        return {
+                            month: `${monthName} ${year}`,
+                            monthKey: monthKey,
+                            requests: records.reduce((sum, r) => sum + r.Aantal, 0),
+                            records: records.length,
+                            sortDate: new Date(parseInt(year), parseInt(month) - 1, 1)
+                        };
+                    })
+                    .sort((a, b) => a.sortDate - b.sortDate)
+                    .slice(-12);
+            };
+
+            const getInsurerData = () => {
+                const grouped = _.groupBy(filteredData, 'Insurer');
+                return Object.entries(grouped)
+                    .map(([insurer, records]) => ({
+                        insurer,
+                        requests: records.reduce((sum, r) => sum + r.Aantal, 0),
+                        records: records.length
+                    }))
+                    .sort((a, b) => b.requests - a.requests)
+                    .slice(0, 10);
+            };
+
+            const getProductData = () => {
+                const grouped = _.groupBy(filteredData, 'Product');
+                return Object.entries(grouped)
+                    .map(([product, records]) => ({
+                        product: product.length > 25 ? product.substring(0, 25) + '...' : product,
+                        fullProduct: product,
+                        requests: records.reduce((sum, r) => sum + r.Aantal, 0),
+                        records: records.length
+                    }))
+                    .sort((a, b) => b.requests - a.requests)
+                    .slice(0, 10);
+            };
+
+            const getUserData = () => {
+                const grouped = _.groupBy(filteredData, 'actualUser');
+                return Object.entries(grouped)
+                    .map(([user, records]) => ({
+                        user: user.length > 30 ? user.substring(0, 30) + '...' : user,
+                        fullUser: user,
+                        requests: records.reduce((sum, r) => sum + r.Aantal, 0),
+                        records: records.length
+                    }))
+                    .sort((a, b) => b.requests - a.requests)
+                    .slice(0, 15);
+            };
+
+            const getEnvironmentData = () => {
+                const grouped = _.groupBy(filteredData, 'Environment');
+                return Object.entries(grouped)
+                    .map(([env, records]) => ({
+                        environment: env,
+                        requests: records.reduce((sum, r) => sum + r.Aantal, 0),
+                        records: records.length,
+                        share: (records.reduce((sum, r) => sum + r.Aantal, 0) / filteredData.reduce((sum, r) => sum + r.Aantal, 0)) * 100
+                    }));
+            };
+
+            const handleMultiSelectFilter = (type, value) => {
+                setFilters(prev => {
+                    const newFilters = { ...prev };
+                    
+                    if (newFilters[type].includes(value)) {
+                        newFilters[type] = newFilters[type].filter(v => v !== value);
+                    } else {
+                        newFilters[type] = [...newFilters[type], value];
+                    }
+                    
+                    if (type === 'insurer') {
+                        newFilters.product = [];
+                        newFilters.user = [];
+                    }
+                    
+                    if (type === 'product') {
+                        newFilters.user = [];
+                    }
+                    
+                    return newFilters;
+                });
+            };
+
+            const exportData = (format) => {
+                const timestamp = new Date().toISOString().split('T')[0];
+                
+                if (format === 'excel') {
+                    const wb = XLSX.utils.book_new();
+                    const ws = XLSX.utils.json_to_sheet(filteredData);
+                    XLSX.utils.book_append_sheet(wb, ws, 'Filtered Data');
+                    XLSX.writeFile(wb, `ipc-analysis-${timestamp}.xlsx`);
+                }
+                addNotification('success', `Data geëxporteerd als ${format.toUpperCase()}`);
+            };
+
+            const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
+
+            // File upload component
             const FileUploadArea = () => {
                 const [dragOver, setDragOver] = useState(false);
 
@@ -461,19 +1052,30 @@
                     }
                 };
 
+                const handleDragOver = (event) => {
+                    event.preventDefault();
+                    setDragOver(true);
+                };
+
+                const handleDragLeave = (event) => {
+                    event.preventDefault();
+                    setDragOver(false);
+                };
+
                 return e('div', 
                     {
                         className: `file-upload-area ${dragOver ? 'drag-over' : ''}`,
                         onDrop: handleDrop,
-                        onDragOver: (e) => { e.preventDefault(); setDragOver(true); },
-                        onDragLeave: (e) => { e.preventDefault(); setDragOver(false); },
+                        onDragOver: handleDragOver,
+                        onDragLeave: handleDragLeave,
                         onClick: () => fileInputRef.current?.click()
                     },
                     e('div', { className: 'flex flex-col items-center gap-4' }, [
                         e(Upload, { key: 'icon', className: 'w-12 h-12 text-gray-400' }),
                         e('div', { key: 'text', className: 'text-center' }, [
                             e('p', { key: 'title', className: 'text-lg font-medium text-gray-700' }, 'Upload IPC Data Excel Bestand'),
-                            e('p', { key: 'subtitle', className: 'text-sm text-gray-600 mt-1' }, 'Sleep het bestand hierheen of klik om te selecteren')
+                            e('p', { key: 'subtitle', className: 'text-sm text-gray-600 mt-1' }, 'Sleep het bestand hierheen of klik om te selecteren'),
+                            e('p', { key: 'requirement', className: 'text-xs text-gray-400 mt-2' }, 'Excel bestand moet een "Data" sheet bevatten')
                         ]),
                         e('input', {
                             key: 'input',
@@ -502,106 +1104,442 @@
             if (!fileUploaded) {
                 return e('div', 
                     { className: `min-h-screen transition-colors ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'} p-6` },
-                    e('div', { className: 'max-w-4xl mx-auto' }, [
-                        e('div', 
-                            { key: 'header', className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-8 mb-8 text-center` },
-                            [
-                                e('h1', 
-                                    { key: 'title', className: 'text-4xl font-bold mb-4 text-blue-600' },
-                                    'IPC Requests Analyse Dashboard'
-                                ),
-                                e('p', 
-                                    { key: 'subtitle', className: `${darkMode ? 'text-gray-300' : 'text-gray-600'} text-xl mb-6` },
-                                    'Upload je Excel bestand om geavanceerde analyses te starten'
-                                ),
-                                e('button',
+                    [
+                        e('div', { key: 'notifications', className: 'fixed top-4 right-4 z-50 space-y-2' },
+                            notifications.map(notification =>
+                                e('div',
                                     {
-                                        key: 'dark-toggle',
-                                        onClick: () => setDarkMode(!darkMode),
-                                        className: `p-3 rounded-lg ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'} transition-colors`
+                                        key: notification.id,
+                                        className: `p-3 rounded-lg shadow-lg border-l-4 animate-slide-in ${
+                                            notification.type === 'error' ? 'bg-red-50 border-red-500 text-red-700' :
+                                            notification.type === 'success' ? 'bg-green-50 border-green-500 text-green-700' :
+                                            'bg-blue-50 border-blue-500 text-blue-700'
+                                        }`
                                     },
-                                    darkMode ? e(Sun, { className: 'w-6 h-6' }) : e(Moon, { className: 'w-6 h-6' })
+                                    e('span', { className: 'text-sm font-medium' }, notification.message)
                                 )
-                            ]
+                            )
                         ),
-                        e('div', 
-                            { key: 'upload', className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-8 mb-8` },
-                            loading ? 
-                                e('div', { key: 'loading', className: 'text-center py-12' }, [
-                                    e(RefreshCw, { key: 'spinner', className: 'w-12 h-12 animate-spin mx-auto mb-4 text-blue-600' }),
-                                    e('p', { key: 'text', className: 'text-lg' }, 'Bestand wordt verwerkt...')
+                        
+                        e('div', { key: 'main', className: 'max-w-4xl mx-auto' }, [
+                            e('div', 
+                                { key: 'header', className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-8 mb-8 text-center` },
+                                [
+                                    e('h1', 
+                                        { key: 'title', className: 'text-4xl font-bold mb-4 text-blue-600' },
+                                        'IPC Requests Analyse Dashboard'
+                                    ),
+                                    e('p', 
+                                        { key: 'subtitle', className: `${darkMode ? 'text-gray-300' : 'text-gray-600'} text-xl mb-6` },
+                                        'Upload je Excel bestand om geavanceerde analyses te starten'
+                                    ),
+                                    e('div', { key: 'actions', className: 'flex justify-center gap-4' }, [
+                                        e('button',
+                                            {
+                                                key: 'dark-toggle',
+                                                onClick: () => setDarkMode(!darkMode),
+                                                className: `p-3 rounded-lg ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'} transition-colors`
+                                            },
+                                            darkMode ? e(Sun, { className: 'w-6 h-6' }) : e(Moon, { className: 'w-6 h-6' })
+                                        )
+                                    ])
+                                ]
+                            ),
+
+                            e('div', 
+                                { key: 'upload', className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-8 mb-8` },
+                                loading ? 
+                                    e('div', { key: 'loading', className: 'text-center py-12' }, [
+                                        e(RefreshCw, { key: 'spinner', className: 'w-12 h-12 animate-spin mx-auto mb-4 text-blue-600' }),
+                                        e('p', { key: 'text', className: 'text-lg' }, 'Bestand wordt verwerkt...')
+                                    ])
+                                    :
+                                    e(FileUploadArea, { key: 'upload-area' })
+                            ),
+
+                            uploadError && e('div', 
+                                { key: 'error', className: 'bg-red-50 border border-red-200 rounded-lg p-6 mb-8' },
+                                e('div', { className: 'flex items-center gap-3' }, [
+                                    e(AlertTriangle, { key: 'icon', className: 'w-6 h-6 text-red-600' }),
+                                    e('div', { key: 'text' }, [
+                                        e('h3', { key: 'title', className: 'font-medium text-red-800' }, 'Upload Fout'),
+                                        e('p', { key: 'message', className: 'text-red-600 mt-1' }, uploadError)
+                                    ])
                                 ])
-                                :
-                                e(FileUploadArea, { key: 'upload-area' })
-                        ),
-                        uploadError && e('div', 
-                            { key: 'error', className: 'bg-red-50 border border-red-200 rounded-lg p-6' },
-                            e('p', { className: 'text-red-600' }, uploadError)
-                        )
-                    ])
+                            )
+                        ])
+                    ]
                 );
             }
 
             return e('div', 
-                { className: `min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'} p-6` },
-                e('div', { className: 'max-w-7xl mx-auto' }, [
-                    e('div', 
-                        { key: 'header', className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6 mb-6` },
-                        e('div', { className: 'flex justify-between items-center' }, [
-                            e('div', { key: 'title' }, [
-                                e('h1', { className: 'text-3xl font-bold text-blue-600' }, 'IPC Dashboard'),
-                                e('p', { className: `${darkMode ? 'text-gray-300' : 'text-gray-600'}` }, 
-                                    `${data.length.toLocaleString()} records geladen`
-                                )
-                            ]),
-                            e('button',
+                { className: `min-h-screen transition-colors ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'} p-6` },
+                [
+                    e('div', { key: 'notifications', className: 'fixed top-4 right-4 z-50 space-y-2' },
+                        notifications.map(notification =>
+                            e('div',
                                 {
-                                    onClick: () => setDarkMode(!darkMode),
-                                    className: `p-2 rounded-lg ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'} transition-colors`
+                                    key: notification.id,
+                                    className: `p-3 rounded-lg shadow-lg border-l-4 animate-slide-in ${
+                                        notification.type === 'error' ? 'bg-red-50 border-red-500 text-red-700' :
+                                        notification.type === 'success' ? 'bg-green-50 border-green-500 text-green-700' :
+                                        'bg-blue-50 border-blue-500 text-blue-700'
+                                    }`
                                 },
-                                darkMode ? e(Sun, { className: 'w-5 h-5' }) : e(Moon, { className: 'w-5 h-5' })
+                                e('span', { className: 'text-sm font-medium' }, notification.message)
                             )
-                        ])
+                        )
                     ),
-                    e('div', 
-                        { key: 'success', className: 'bg-green-50 border border-green-200 rounded-lg p-6 text-center' },
-                        [
-                            e('h2', { key: 'title', className: 'text-xl font-semibold text-green-800 mb-2' }, 'Data Succesvol Geladen!'),
-                            e('p', { key: 'message', className: 'text-green-600' }, 
-                                `${data.length.toLocaleString()} records uit je Excel bestand zijn verwerkt en klaar voor analyse.`
+
+                    e('div', { key: 'main', className: 'max-w-7xl mx-auto' }, [
+                        e('div', 
+                            { key: 'header', className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6 mb-6` },
+                            e('div', { className: 'flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4' }, [
+                                e('div', { key: 'title-section' }, [
+                                    e('h1', 
+                                        { className: 'text-3xl font-bold mb-2 text-blue-600' },
+                                        'IPC Requests Analyse Dashboard'
+                                    ),
+                                    e('p', 
+                                        { className: `${darkMode ? 'text-gray-300' : 'text-gray-600'}` },
+                                        `Analyseer ${data.length.toLocaleString()} records | Data kwaliteit: ${stats.dataQuality.toFixed(1)}%`
+                                    )
+                                ]),
+                                e('div', { key: 'actions', className: 'flex items-center gap-3' }, [
+                                    e('button',
+                                        {
+                                            onClick: () => setDarkMode(!darkMode),
+                                            className: `p-2 rounded-lg ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'} transition-colors`
+                                        },
+                                        darkMode ? e(Sun, { className: 'w-5 h-5' }) : e(Moon, { className: 'w-5 h-5' })
+                                    ),
+                                    e('button', 
+                                        { 
+                                            onClick: () => exportData('excel'),
+                                            className: `flex items-center gap-2 px-4 py-2 rounded-lg ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-blue-600 hover:bg-blue-700'} text-white transition-colors`
+                                        },
+                                        [
+                                            e(Download, { key: 'icon', className: 'w-4 h-4' }),
+                                            e('span', { key: 'text' }, 'Export Excel')
+                                        ]
+                                    )
+                                ])
+                            ])
+                        ),
+
+                        e('div', 
+                            { key: 'filters', className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6 mb-6` },
+                            [
+                                e('div', { key: 'filter-header', className: 'flex items-center gap-2 mb-4' }, [
+                                    e(Filter, { className: 'w-5 h-5 text-gray-600' }),
+                                    e('h2', { className: 'text-lg font-semibold' }, 'Geavanceerde Filters')
+                                ]),
+                                e('div', { key: 'filter-content', className: 'space-y-4' }, [
+                                    e('div', { className: 'relative' }, [
+                                        e(Search, { className: 'absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400' }),
+                                        e('input', {
+                                            type: 'text',
+                                            placeholder: 'Zoek in verzekeraars, producten, gebruikers...',
+                                            value: filters.searchTerm,
+                                            onChange: (event) => setFilters(prev => ({ ...prev, searchTerm: event.target.value })),
+                                            className: `w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                                                darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                                            }`
+                                        })
+                                    ]),
+                                    
+                                    e('div', { className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4' }, [
+                                        e('div', { key: 'env-filter' }, [
+                                            e('label', { className: 'block text-sm font-medium mb-2' }, 'Environment'),
+                                            e('div', 
+                                                { className: `border rounded-lg p-2 max-h-32 overflow-y-auto ${darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-white'}` },
+                                                uniqueValues.environments.map(env =>
+                                                    e('label', 
+                                                        { 
+                                                            key: env,
+                                                            className: 'flex items-center gap-2 p-1 hover:bg-gray-50 rounded cursor-pointer' 
+                                                        },
+                                                        [
+                                                            e('input', {
+                                                                key: 'checkbox',
+                                                                type: 'checkbox',
+                                                                checked: filters.environment.includes(env),
+                                                                onChange: () => handleMultiSelectFilter('environment', env),
+                                                                className: 'w-4 h-4'
+                                                            }),
+                                                            e('span', { key: 'label', className: 'text-sm' }, env)
+                                                        ]
+                                                    )
+                                                )
+                                            ),
+                                            e('div', { key: 'count', className: 'text-xs text-gray-500 mt-1' }, 
+                                                `${uniqueValues.environments.length} environments beschikbaar`
+                                            )
+                                        ]),
+
+                                        e('div', { key: 'insurer-filter' }, [
+                                            e('label', { className: 'block text-sm font-medium mb-2' }, 'Verzekeraar'),
+                                            e('div', 
+                                                { className: `border rounded-lg p-2 max-h-32 overflow-y-auto ${darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-white'}` },
+                                                uniqueValues.insurers.map(insurer =>
+                                                    e('label', 
+                                                        { 
+                                                            key: insurer,
+                                                            className: 'flex items-center gap-2 p-1 hover:bg-gray-50 rounded cursor-pointer' 
+                                                        },
+                                                        [
+                                                            e('input', {
+                                                                key: 'checkbox',
+                                                                type: 'checkbox',
+                                                                checked: filters.insurer.includes(insurer),
+                                                                onChange: () => handleMultiSelectFilter('insurer', insurer),
+                                                                className: 'w-4 h-4'
+                                                            }),
+                                                            e('span', { key: 'label', className: 'text-sm', title: insurer }, 
+                                                                insurer.length > 20 ? insurer.substring(0, 20) + '...' : insurer
+                                                            )
+                                                        ]
+                                                    )
+                                                )
+                                            ),
+                                            e('div', { key: 'count', className: 'text-xs text-gray-500 mt-1' }, 
+                                                `${uniqueValues.insurers.length} verzekeraars beschikbaar`
+                                            )
+                                        ]),
+
+                                        e('div', { key: 'product-filter' }, [
+                                            e('label', { className: 'block text-sm font-medium mb-2' }, 
+                                                filters.insurer.length === 0 ? 'Product (selecteer eerst verzekeraar)' : 'Product'
+                                            ),
+                                            filters.insurer.length === 0 ? 
+                                                e('div', { className: `border rounded-lg p-4 text-center text-gray-500 ${darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-gray-100'}` },
+                                                    'Selecteer eerst een verzekeraar'
+                                                ) :
+                                                e('div', {}, [
+                                                    e('div', 
+                                                        { key: 'list', className: `border rounded-lg p-2 max-h-32 overflow-y-auto ${darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-white'}` },
+                                                        getFilteredProducts().map(product =>
+                                                            e('label', 
+                                                                { 
+                                                                    key: product,
+                                                                    className: 'flex items-center gap-2 p-1 hover:bg-gray-50 rounded cursor-pointer' 
+                                                                },
+                                                                [
+                                                                    e('input', {
+                                                                        key: 'checkbox',
+                                                                        type: 'checkbox',
+                                                                        checked: filters.product.includes(product),
+                                                                        onChange: () => handleMultiSelectFilter('product', product),
+                                                                        className: 'w-4 h-4'
+                                                                    }),
+                                                                    e('span', { key: 'label', className: 'text-sm', title: product }, 
+                                                                        product.length > 20 ? product.substring(0, 20) + '...' : product
+                                                                    )
+                                                                ]
+                                                            )
+                                                        )
+                                                    ),
+                                                    e('div', { key: 'count', className: 'text-xs text-gray-500 mt-1' }, 
+                                                        `${getFilteredProducts().length} producten beschikbaar`
+                                                    )
+                                                ])
+                                        ]),
+
+                                        e('div', { key: 'date-filters', className: 'space-y-3' }, [
+                                            e('div', { key: 'year-filter' }, [
+                                                e('label', { className: 'block text-sm font-medium mb-2' }, 'Jaar'),
+                                                e('select', {
+                                                    value: filters.selectedYear,
+                                                    onChange: (event) => setFilters(prev => ({ ...prev, selectedYear: event.target.value })),
+                                                    className: `w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                                                        darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                                                    }`
+                                                }, [
+                                                    e('option', { key: 'all-years', value: 'all' }, 'Alle jaren'),
+                                                    ...uniqueValues.years.map(year =>
+                                                        e('option', { key: year, value: year.toString() }, year.toString())
+                                                    )
+                                                ])
+                                            ]),
+                                            e('div', { key: 'month-filter' }, [
+                                                e('label', { className: 'block text-sm font-medium mb-2' }, 'Maand'),
+                                                e('select', {
+                                                    value: filters.selectedMonth,
+                                                    onChange: (event) => setFilters(prev => ({ ...prev, selectedMonth: event.target.value })),
+                                                    className: `w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                                                        darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                                                    }`
+                                                }, [
+                                                    e('option', { key: 'all-months', value: 'all' }, 'Alle maanden'),
+                                                    ...uniqueValues.months.map(month =>
+                                                        e('option', { key: month.value, value: month.value.toString() }, month.label)
+                                                    )
+                                                ])
+                                            ])
+                                        ])
+                                    ])
+                                ])
+                            ]
+                        ),
+
+                        e('div', 
+                            { key: 'stats', className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-6' },
+                            [
+                                {
+                                    title: 'Totaal Requests',
+                                    value: stats.totalRequests.toLocaleString(),
+                                    icon: TrendingUp,
+                                    color: 'blue'
+                                },
+                                {
+                                    title: 'Unieke Gebruikers',
+                                    value: stats.uniqueUsers.toLocaleString(),
+                                    icon: Users,
+                                    color: 'green'
+                                },
+                                {
+                                    title: 'Producten',
+                                    value: stats.uniqueProducts,
+                                    icon: Package,
+                                    color: 'purple'
+                                },
+                                {
+                                    title: 'Verzekeraars',
+                                    value: stats.uniqueInsurers,
+                                    icon: Database,
+                                    color: 'orange'
+                                },
+                                {
+                                    title: 'Gem. per Maand',
+                                    value: stats.avgPerMonth.toLocaleString(),
+                                    icon: Calendar,
+                                    color: 'pink'
+                                },
+                                {
+                                    title: 'Data Kwaliteit',
+                                    value: `${stats.dataQuality.toFixed(1)}%`,
+                                    icon: Eye,
+                                    color: 'cyan'
+                                }
+                            ].map((stat, index) =>
+                                e('div', 
+                                    { 
+                                        key: index,
+                                        className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-4 border-l-4 border-blue-500 hover:shadow-md transition-shadow`
+                                    },
+                                    e('div', { className: 'flex items-center justify-between' }, [
+                                        e('div', { key: 'content' }, [
+                                            e('p', 
+                                                { className: `text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}` },
+                                                stat.title
+                                            ),
+                                            e('p', { className: 'text-2xl font-bold mt-1' }, stat.value)
+                                        ]),
+                                        e(stat.icon, { key: 'icon', className: 'w-8 h-8 text-blue-600' })
+                                    ])
+                                )
+                            )
+                        ),
+
+                        e('div', { key: 'charts', className: 'grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6' }, [
+                            e('div', 
+                                { key: 'monthly', className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6` },
+                                [
+                                    e('h3', { key: 'title', className: 'text-lg font-semibold mb-4' }, 'Maandelijkse Trend'),
+                                    e(SimpleAreaChart, { 
+                                        key: 'fallback',
+                                        data: getMonthlyData(), 
+                                        dataKey: 'requests', 
+                                        nameKey: 'month', 
+                                        color: '#3b82f6' 
+                                    })
+                                ]
                             ),
-                            e('button', {
-                                key: 'reload',
-                                onClick: () => window.location.reload(),
-                                className: 'mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'
-                            }, 'Nieuw Bestand Uploaden')
-                        ]
-                    )
-                ])
+
+                            e('div', 
+                                { key: 'environment', className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6` },
+                                [
+                                    e('h3', { key: 'title', className: 'text-lg font-semibold mb-4' }, 'Environment Verdeling'),
+                                    e(SimplePieChart, { 
+                                        key: 'fallback',
+                                        data: getEnvironmentData(), 
+                                        dataKey: 'requests', 
+                                        nameKey: 'environment', 
+                                        colors: colors 
+                                    })
+                                ]
+                            )
+                        ]),
+
+                        e('div', { key: 'performers', className: 'grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6' }, [
+                            e('div', 
+                                { key: 'insurers', className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6` },
+                                [
+                                    e('h3', { key: 'title', className: 'text-lg font-semibold mb-4' }, 'Top 10 Verzekeraars'),
+                                    e(SimpleBarChart, { 
+                                        key: 'fallback',
+                                        data: getInsurerData(), 
+                                        dataKey: 'requests', 
+                                        nameKey: 'insurer', 
+                                        color: '#10b981' 
+                                    })
+                                ]
+                            ),
+
+                            e('div', 
+                                { key: 'products', className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6` },
+                                [
+                                    e('h3', { key: 'title', className: 'text-lg font-semibold mb-4' }, 'Top 10 Producten'),
+                                    e(SimpleBarChart, { 
+                                        key: 'fallback',
+                                        data: getProductData(), 
+                                        dataKey: 'requests', 
+                                        nameKey: 'product', 
+                                        color: '#f59e0b' 
+                                    })
+                                ]
+                            )
+                        ]),
+
+                        e('div', 
+                            { key: 'footer', className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6` },
+                            e('div', { className: 'flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4' }, [
+                                e('div', { key: 'actions', className: 'flex items-center gap-4' }, [
+                                    e('button',
+                                        {
+                                            onClick: () => window.location.reload(),
+                                            className: 'flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'
+                                        },
+                                        [
+                                            e(RefreshCw, { key: 'icon', className: 'w-4 h-4' }),
+                                            e('span', { key: 'text' }, 'Vernieuw Data')
+                                        ]
+                                    )
+                                ]),
+                                
+                                e('div', { key: 'info', className: 'flex items-center gap-4 text-sm text-gray-500' }, [
+                                    e('span', { key: 'update' }, `Laatste update: ${new Date().toLocaleString('nl-NL')}`),
+                                    e('span', { key: 'sep1' }, '•'),
+                                    e('span', { key: 'records' }, `${filteredData.length.toLocaleString()} van ${data.length.toLocaleString()} records`),
+                                    e('span', { key: 'sep2' }, '•'),
+                                    e('span', { key: 'perf' }, `Geladen in ${(Date.now() / 1000).toFixed(1)}s`)
+                                ])
+                            ])
+                        )
+                    ])
+                ]
             );
         };
 
-            // Render the app using React 18 API
-            const root = createRoot(document.getElementById('root'));
-            root.render(e(IpcAnalysisTool));
-            
-        }).catch(error => {
-            console.error('Failed to load libraries:', error);
-            document.getElementById('root').innerHTML = `
-                <div style="padding: 2rem; text-align: center; color: red; font-family: Arial, sans-serif;">
-                    <h2>⚠️ Loading Error</h2>
-                    <p>Required libraries failed to load. Please:</p>
-                    <ul style="text-align: left; display: inline-block;">
-                        <li>Check your internet connection</li>
-                        <li>Refresh the page (Ctrl+F5 or Cmd+Shift+R)</li>
-                        <li>Try again in a few moments</li>
-                    </ul>
-                    <button onclick="window.location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 0.25rem; cursor: pointer;">
-                        Refresh Page
-                    </button>
-                </div>
-            `;
-        });
+            render(e(IpcAnalysisTool), document.getElementById('root'));
+        }
+
+        // Start initialization when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
     </script>
 </body>
 </html>
