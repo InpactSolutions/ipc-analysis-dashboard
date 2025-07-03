@@ -316,14 +316,90 @@
             background-color: #334155;
         }
         
+        /* Custom dropdown styles */
+        .dropdown-container {
+            position: relative;
+        }
+        
+        .dropdown-toggle {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            background-color: white;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .dropdown-toggle:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #3b82f6;
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            z-index: 50;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .dropdown-item {
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #f3f4f6;
+        }
+        
+        .dropdown-item.selected {
+            background-color: #eff6ff;
+            color: #1d4ed8;
+        }
+        
+        .dark .dropdown-toggle {
+            background-color: #374151;
+            border-color: #4b5563;
+            color: white;
+        }
+        
+        .dark .dropdown-menu {
+            background-color: #374151;
+            border-color: #4b5563;
+        }
+        
+        .dark .dropdown-item:hover {
+            background-color: #4b5563;
+        }
+        
+        .dark .dropdown-item.selected {
+            background-color: #1e3a8a;
+            color: #bfdbfe;
+        }
+        
         @media (min-width: 768px) {
             .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .md\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            .md\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
         }
         
         @media (min-width: 1024px) {
             .lg\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            .lg\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
             .lg\:flex-row { flex-direction: row; }
             .lg\:items-center { align-items: center; }
             .lg\:justify-between { justify-content: space-between; }
@@ -542,6 +618,115 @@
             e('path', { key: 1, d: "M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" })
         ]);
 
+        const ChevronDown = ({ className }) => e('svg', {
+            className,
+            xmlns: "http://www.w3.org/2000/svg",
+            width: "24", height: "24", viewBox: "0 0 24 24",
+            fill: "none", stroke: "currentColor", strokeWidth: "2",
+            strokeLinecap: "round", strokeLinejoin: "round"
+        }, [
+            e('path', { key: 1, d: "m6 9 6 6 6-6" })
+        ]);
+
+        const Check = ({ className }) => e('svg', {
+            className,
+            xmlns: "http://www.w3.org/2000/svg",
+            width: "24", height: "24", viewBox: "0 0 24 24",
+            fill: "none", stroke: "currentColor", strokeWidth: "2",
+            strokeLinecap: "round", strokeLinejoin: "round"
+        }, [
+            e('path', { key: 1, d: "M20 6 9 17l-5-5" })
+        ]);
+
+        const User = ({ className }) => e('svg', {
+            className,
+            xmlns: "http://www.w3.org/2000/svg",
+            width: "24", height: "24", viewBox: "0 0 24 24",
+            fill: "none", stroke: "currentColor", strokeWidth: "2",
+            strokeLinecap: "round", strokeLinejoin: "round"
+        }, [
+            e('path', { key: 1, d: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" }),
+            e('circle', { key: 2, cx: "12", cy: "7", r: "4" })
+        ]);
+
+        // MultiSelect Dropdown Component
+        const MultiSelectDropdown = ({ 
+            options, 
+            selectedValues, 
+            onToggle, 
+            placeholder,
+            darkMode,
+            searchTerm,
+            onSearchChange,
+            maxHeight = '200px',
+            showSearch = true
+        }) => {
+            const [isOpen, setIsOpen] = useState(false);
+            const dropdownRef = useRef(null);
+
+            useEffect(() => {
+                const handleClickOutside = (event) => {
+                    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                        setIsOpen(false);
+                    }
+                };
+
+                document.addEventListener('mousedown', handleClickOutside);
+                return () => document.removeEventListener('mousedown', handleClickOutside);
+            }, []);
+
+            const filteredOptions = options.filter(option => 
+                option.toLowerCase().includes((searchTerm || '').toLowerCase())
+            );
+
+            return e('div', { className: 'dropdown-container', ref: dropdownRef }, [
+                e('button', {
+                    key: 'toggle',
+                    className: `dropdown-toggle ${darkMode ? 'dark' : ''}`,
+                    onClick: () => setIsOpen(!isOpen),
+                    type: 'button'
+                }, [
+                    e('span', { key: 'text', className: 'text-sm' }, 
+                        selectedValues.length === 0 ? placeholder : 
+                        selectedValues.length === 1 ? selectedValues[0] :
+                        `${selectedValues.length} geselecteerd`
+                    ),
+                    e(ChevronDown, { key: 'icon', className: `w-4 h-4 transition-transform ${isOpen ? 'transform rotate-180' : ''}` })
+                ]),
+                
+                isOpen && e('div', { 
+                    key: 'menu',
+                    className: `dropdown-menu ${darkMode ? 'dark' : ''}`,
+                    style: { maxHeight }
+                }, [
+                    showSearch && e('div', { key: 'search', className: 'p-2 border-b' }, [
+                        e('input', {
+                            type: 'text',
+                            placeholder: 'Zoeken...',
+                            value: searchTerm || '',
+                            onChange: (e) => onSearchChange && onSearchChange(e.target.value),
+                            className: `w-full px-3 py-2 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                                darkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300'
+                            }`
+                        })
+                    ]),
+                    
+                    filteredOptions.length === 0 ? 
+                        e('div', { key: 'empty', className: 'p-3 text-center text-gray-500 text-sm' }, 'Geen resultaten gevonden') :
+                        filteredOptions.map(option => 
+                            e('div', {
+                                key: option,
+                                className: `dropdown-item ${selectedValues.includes(option) ? 'selected' : ''}`,
+                                onClick: () => onToggle(option)
+                            }, [
+                                e('span', { key: 'text', className: 'text-sm truncate' }, option),
+                                selectedValues.includes(option) && e(Check, { key: 'check', className: 'w-4 h-4 ml-2' })
+                            ])
+                        )
+                ])
+            ]);
+        };
+
         // Simple chart components
         const SimpleBarChart = ({ data, dataKey, nameKey, color = '#3b82f6', height = 300 }) => {
             if (!data || data.length === 0) return e('div', { className: 'text-center py-8 text-gray-500' }, 'Geen data beschikbaar');
@@ -683,6 +868,12 @@
             const [fileUploaded, setFileUploaded] = useState(false);
             const [uploadError, setUploadError] = useState(null);
             const [notifications, setNotifications] = useState([]);
+            const [searchTerms, setSearchTerms] = useState({
+                user: '',
+                environment: '',
+                insurer: '',
+                product: ''
+            });
             const [filters, setFilters] = useState({
                 environment: [],
                 insurer: [],
@@ -759,9 +950,23 @@
                         const date = row.YyyyMm ? new Date(row.YyyyMm) : null;
                         const monthNames = ['Jan', 'Feb', 'Mrt', 'Apr', 'Mei', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
                         
-                        const actualUser = (row.GebruikerVe && row.GebruikerVe !== '(geen VE_MYAAND)' && row.GebruikerVe.trim() !== '') 
-                            ? row.GebruikerVe 
-                            : row.Gebruiker;
+                        // Smart user combination logic
+                        let actualUser = row.Gebruiker;
+                        let userSource = 'Gebruiker';
+                        
+                        // If GebruikerVe exists and is not empty/null/placeholder, use it
+                        if (row.GebruikerVe && 
+                            row.GebruikerVe !== '(geen VE_MYAAND)' && 
+                            row.GebruikerVe.trim() !== '' && 
+                            row.GebruikerVe !== 'NULL') {
+                            actualUser = row.GebruikerVe;
+                            userSource = 'GebruikerVe';
+                        }
+                        
+                        // Create display name showing source
+                        const userDisplayName = userSource === 'GebruikerVe' ? 
+                            `${actualUser} (VE)` : 
+                            `${actualUser} (Reg)`;
                         
                         return {
                             ...row,
@@ -772,6 +977,8 @@
                             monthKey: date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}` : 'unknown',
                             year: date ? date.getFullYear() : 'Onbekend',
                             actualUser: actualUser,
+                            userSource: userSource,
+                            userDisplayName: userDisplayName,
                             userCategory: categorizeUser(actualUser, row.Aantal),
                             productCategory: categorizeProduct(row.Product),
                             hasValidDate: !!date,
@@ -788,7 +995,7 @@
                     const allEnvironments = _.uniq(processedData.map(d => d.Environment)).filter(Boolean);
                     const allInsurers = _.uniq(processedData.map(d => d.Insurer)).filter(Boolean).sort();
                     const allProducts = _.uniq(processedData.map(d => d.Product)).filter(Boolean).sort();
-                    const allUsers = _.uniq(processedData.map(d => d.actualUser)).filter(d => d && d !== 'NULL' && d.trim() !== '').sort();
+                    const allUsers = _.uniq(processedData.map(d => d.userDisplayName)).filter(Boolean).sort();
                     const allYears = _.uniq(processedData.filter(d => d.YyyyMm).map(d => d.YyyyMm.getFullYear())).sort().reverse();
 
                     console.log('Unique values extracted:');
@@ -853,7 +1060,7 @@
                     baseData = baseData.filter(d => filters.product.includes(d.Product));
                 }
                 
-                const users = _.uniq(baseData.map(d => d.actualUser)).filter(d => d && d !== 'NULL' && d.trim() !== '').sort();
+                const users = _.uniq(baseData.map(d => d.userDisplayName)).filter(Boolean).sort();
                 return users;
             };
 
@@ -880,7 +1087,7 @@
                     filtered = filtered.filter(d => filters.product.includes(d.Product));
                 }
                 if (filters.user.length > 0) {
-                    filtered = filtered.filter(d => filters.user.includes(d.actualUser));
+                    filtered = filtered.filter(d => filters.user.includes(d.userDisplayName));
                 }
 
                 if (filters.selectedYear !== 'all') {
@@ -968,7 +1175,7 @@
             };
 
             const getUserData = () => {
-                const grouped = _.groupBy(filteredData, 'actualUser');
+                const grouped = _.groupBy(filteredData, 'userDisplayName');
                 return Object.entries(grouped)
                     .map(([user, records]) => ({
                         user: user.length > 30 ? user.substring(0, 30) + '...' : user,
@@ -1224,101 +1431,73 @@
                                     e('h2', { className: 'text-lg font-semibold' }, 'Geavanceerde Filters')
                                 ]),
                                 e('div', { key: 'filter-content', className: 'space-y-4' }, [
-                                    e('div', { className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4' }, [
+                                    e('div', { className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4' }, [
                                         e('div', { key: 'env-filter' }, [
                                             e('label', { className: 'block text-sm font-medium mb-2' }, 'Environment'),
-                                            e('div', 
-                                                { className: `border rounded-lg p-2 max-h-32 overflow-y-auto ${darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-white'}` },
-                                                uniqueValues.environments.map(env =>
-                                                    e('label', 
-                                                        { 
-                                                            key: env,
-                                                            className: 'flex items-center gap-2 p-1 hover:bg-gray-50 rounded cursor-pointer' 
-                                                        },
-                                                        [
-                                                            e('input', {
-                                                                key: 'checkbox',
-                                                                type: 'checkbox',
-                                                                checked: filters.environment.includes(env),
-                                                                onChange: () => handleMultiSelectFilter('environment', env),
-                                                                className: 'w-4 h-4'
-                                                            }),
-                                                            e('span', { key: 'label', className: 'text-sm' }, env)
-                                                        ]
-                                                    )
-                                                )
-                                            ),
-                                            e('div', { key: 'count', className: 'text-xs text-gray-500 mt-1' }, 
-                                                `${uniqueValues.environments.length} environments beschikbaar`
-                                            )
+                                            e(MultiSelectDropdown, {
+                                                options: uniqueValues.environments,
+                                                selectedValues: filters.environment,
+                                                onToggle: (value) => handleMultiSelectFilter('environment', value),
+                                                placeholder: 'Selecteer environments...',
+                                                darkMode: darkMode,
+                                                searchTerm: searchTerms.environment,
+                                                onSearchChange: (term) => setSearchTerms(prev => ({ ...prev, environment: term })),
+                                                showSearch: uniqueValues.environments.length > 5
+                                            })
                                         ]),
 
                                         e('div', { key: 'insurer-filter' }, [
                                             e('label', { className: 'block text-sm font-medium mb-2' }, 'Verzekeraar'),
-                                            e('div', 
-                                                { className: `border rounded-lg p-2 max-h-32 overflow-y-auto ${darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-white'}` },
-                                                uniqueValues.insurers.map(insurer =>
-                                                    e('label', 
-                                                        { 
-                                                            key: insurer,
-                                                            className: 'flex items-center gap-2 p-1 hover:bg-gray-50 rounded cursor-pointer' 
-                                                        },
-                                                        [
-                                                            e('input', {
-                                                                key: 'checkbox',
-                                                                type: 'checkbox',
-                                                                checked: filters.insurer.includes(insurer),
-                                                                onChange: () => handleMultiSelectFilter('insurer', insurer),
-                                                                className: 'w-4 h-4'
-                                                            }),
-                                                            e('span', { key: 'label', className: 'text-sm', title: insurer }, 
-                                                                insurer.length > 20 ? insurer.substring(0, 20) + '...' : insurer
-                                                            )
-                                                        ]
-                                                    )
-                                                )
-                                            ),
-                                            e('div', { key: 'count', className: 'text-xs text-gray-500 mt-1' }, 
-                                                `${uniqueValues.insurers.length} verzekeraars beschikbaar`
-                                            )
+                                            e(MultiSelectDropdown, {
+                                                options: uniqueValues.insurers,
+                                                selectedValues: filters.insurer,
+                                                onToggle: (value) => handleMultiSelectFilter('insurer', value),
+                                                placeholder: 'Selecteer verzekeraars...',
+                                                darkMode: darkMode,
+                                                searchTerm: searchTerms.insurer,
+                                                onSearchChange: (term) => setSearchTerms(prev => ({ ...prev, insurer: term })),
+                                                showSearch: uniqueValues.insurers.length > 5
+                                            })
                                         ]),
 
                                         e('div', { key: 'product-filter' }, [
-                                            e('label', { className: 'block text-sm font-medium mb-2' }, 
-                                                filters.insurer.length === 0 ? 'Product (selecteer eerst verzekeraar)' : 'Product'
-                                            ),
+                                            e('label', { className: 'block text-sm font-medium mb-2' }, 'Product'),
                                             filters.insurer.length === 0 ? 
-                                                e('div', { className: `border rounded-lg p-4 text-center text-gray-500 ${darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-gray-100'}` },
-                                                    'Selecteer eerst een verzekeraar'
+                                                e('div', { className: `px-3 py-2 text-sm text-gray-500 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-100 border-gray-300'}` },
+                                                    'Selecteer eerst verzekeraar'
                                                 ) :
-                                                e('div', {}, [
-                                                    e('div', 
-                                                        { key: 'list', className: `border rounded-lg p-2 max-h-32 overflow-y-auto ${darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-white'}` },
-                                                        getFilteredProducts().map(product =>
-                                                            e('label', 
-                                                                { 
-                                                                    key: product,
-                                                                    className: 'flex items-center gap-2 p-1 hover:bg-gray-50 rounded cursor-pointer' 
-                                                                },
-                                                                [
-                                                                    e('input', {
-                                                                        key: 'checkbox',
-                                                                        type: 'checkbox',
-                                                                        checked: filters.product.includes(product),
-                                                                        onChange: () => handleMultiSelectFilter('product', product),
-                                                                        className: 'w-4 h-4'
-                                                                    }),
-                                                                    e('span', { key: 'label', className: 'text-sm', title: product }, 
-                                                                        product.length > 20 ? product.substring(0, 20) + '...' : product
-                                                                    )
-                                                                ]
-                                                            )
-                                                        )
-                                                    ),
-                                                    e('div', { key: 'count', className: 'text-xs text-gray-500 mt-1' }, 
-                                                        `${getFilteredProducts().length} producten beschikbaar`
-                                                    )
-                                                ])
+                                                e(MultiSelectDropdown, {
+                                                    options: getFilteredProducts(),
+                                                    selectedValues: filters.product,
+                                                    onToggle: (value) => handleMultiSelectFilter('product', value),
+                                                    placeholder: 'Selecteer producten...',
+                                                    darkMode: darkMode,
+                                                    searchTerm: searchTerms.product,
+                                                    onSearchChange: (term) => setSearchTerms(prev => ({ ...prev, product: term })),
+                                                    showSearch: getFilteredProducts().length > 5
+                                                })
+                                        ]),
+
+                                        e('div', { key: 'user-filter' }, [
+                                            e('label', { className: 'block text-sm font-medium mb-2 flex items-center gap-2' }, [
+                                                e(User, { className: 'w-4 h-4' }),
+                                                'Gebruiker (Combinatie)'
+                                            ]),
+                                            filters.insurer.length === 0 ? 
+                                                e('div', { className: `px-3 py-2 text-sm text-gray-500 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-100 border-gray-300'}` },
+                                                    'Selecteer eerst verzekeraar'
+                                                ) :
+                                                e(MultiSelectDropdown, {
+                                                    options: getFilteredUsers(),
+                                                    selectedValues: filters.user,
+                                                    onToggle: (value) => handleMultiSelectFilter('user', value),
+                                                    placeholder: 'Selecteer gebruikers...',
+                                                    darkMode: darkMode,
+                                                    searchTerm: searchTerms.user,
+                                                    onSearchChange: (term) => setSearchTerms(prev => ({ ...prev, user: term })),
+                                                    showSearch: true,
+                                                    maxHeight: '250px'
+                                                })
                                         ]),
 
                                         e('div', { key: 'date-filters', className: 'space-y-3' }, [
@@ -1351,6 +1530,21 @@
                                                         e('option', { key: month.value, value: month.value.toString() }, month.label)
                                                     )
                                                 ])
+                                            ])
+                                        ])
+                                    ]),
+                                    
+                                    // User Source Legend
+                                    e('div', { key: 'user-legend', className: 'mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200' }, [
+                                        e('h4', { className: 'text-sm font-semibold text-blue-800 mb-2' }, 'Gebruiker Legenda:'),
+                                        e('div', { className: 'flex flex-wrap gap-4 text-xs' }, [
+                                            e('div', { key: 'reg', className: 'flex items-center gap-2' }, [
+                                                e('span', { className: 'px-2 py-1 bg-blue-100 text-blue-800 rounded' }, '(Reg)'),
+                                                e('span', { className: 'text-blue-700' }, 'Reguliere gebruiker uit "Gebruiker" veld')
+                                            ]),
+                                            e('div', { key: 've', className: 'flex items-center gap-2' }, [
+                                                e('span', { className: 'px-2 py-1 bg-green-100 text-green-800 rounded' }, '(VE)'),
+                                                e('span', { className: 'text-green-700' }, 'VE gebruiker uit "GebruikerVe" veld')
                                             ])
                                         ])
                                     ])
@@ -1423,7 +1617,7 @@
                                 [
                                     e('h3', { key: 'title', className: 'text-lg font-semibold mb-4' }, 'Maandelijkse Trend'),
                                     e(SimpleAreaChart, { 
-                                        key: 'fallback',
+                                        key: 'chart',
                                         data: getMonthlyData(), 
                                         dataKey: 'requests', 
                                         nameKey: 'month', 
@@ -1437,7 +1631,7 @@
                                 [
                                     e('h3', { key: 'title', className: 'text-lg font-semibold mb-4' }, 'Environment Verdeling'),
                                     e(SimplePieChart, { 
-                                        key: 'fallback',
+                                        key: 'chart',
                                         data: getEnvironmentData(), 
                                         dataKey: 'requests', 
                                         nameKey: 'environment', 
@@ -1453,7 +1647,7 @@
                                 [
                                     e('h3', { key: 'title', className: 'text-lg font-semibold mb-4' }, 'Top 10 Verzekeraars'),
                                     e(SimpleBarChart, { 
-                                        key: 'fallback',
+                                        key: 'chart',
                                         data: getInsurerData(), 
                                         dataKey: 'requests', 
                                         nameKey: 'insurer', 
@@ -1467,7 +1661,7 @@
                                 [
                                     e('h3', { key: 'title', className: 'text-lg font-semibold mb-4' }, 'Top 10 Producten'),
                                     e(SimpleBarChart, { 
-                                        key: 'fallback',
+                                        key: 'chart',
                                         data: getProductData(), 
                                         dataKey: 'requests', 
                                         nameKey: 'product', 
@@ -1476,6 +1670,24 @@
                                 ]
                             )
                         ]),
+
+                        e('div', 
+                            { key: 'users', className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6 mb-6` },
+                            [
+                                e('h3', { key: 'title', className: 'text-lg font-semibold mb-4 flex items-center gap-2' }, [
+                                    e(User, { className: 'w-5 h-5' }),
+                                    'Top 15 Gebruikers (Combinatie van Gebruiker en GebruikerVe)'
+                                ]),
+                                e(SimpleBarChart, { 
+                                    key: 'chart',
+                                    data: getUserData(), 
+                                    dataKey: 'requests', 
+                                    nameKey: 'user', 
+                                    color: '#8b5cf6',
+                                    height: 400
+                                })
+                            ]
+                        ),
 
                         e('div', 
                             { key: 'footer', className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6` },
