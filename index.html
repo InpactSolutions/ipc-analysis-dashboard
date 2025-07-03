@@ -807,164 +807,71 @@
             ]);
         };
 
-        const SimpleLineChart = ({ data, dataKey, nameKey, color = '#3b82f6', height = 400 }) => {
+        const SimpleLineChart = ({ data, dataKey, nameKey, color = '#3b82f6', height = 300 }) => {
             if (!data || data.length === 0) return e('div', { className: 'text-center py-8 text-gray-500' }, 'Geen data beschikbaar');
             
             const maxValue = Math.max(...data.map(d => d[dataKey]));
             const minValue = Math.min(...data.map(d => d[dataKey]));
             const range = maxValue - minValue;
-            const padding = range * 0.1; // 10% padding
-            const chartMax = maxValue + padding;
-            const chartMin = Math.max(0, minValue - padding);
-            const chartRange = chartMax - chartMin;
-            
-            // Generate Y-axis labels
-            const yAxisLabels = [];
-            for (let i = 0; i <= 5; i++) {
-                const value = chartMin + (chartRange * i / 5);
-                yAxisLabels.push(Math.round(value));
-            }
-            yAxisLabels.reverse();
-            
-            // Calculate points for the line
-            const points = data.map((item, index) => {
-                const x = (index / (data.length - 1)) * 100;
-                const y = 100 - (((item[dataKey] - chartMin) / chartRange) * 100);
-                return { x, y, value: item[dataKey], label: item[nameKey] };
-            });
-            
-            // Create SVG path for the line
-            const pathData = points.map((point, index) => 
-                `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`
-            ).join(' ');
-            
-            // Create area fill path
-            const areaPath = `M 0 100 L ${pathData.substring(2)} L 100 100 Z`;
             
             return e('div', { className: 'space-y-4' }, [
-                e('div', { key: 'chart-container', className: 'relative bg-gray-50 rounded-lg p-6', style: { height: `${height}px` } }, [
-                    // Y-axis
-                    e('div', { key: 'y-axis', className: 'absolute left-2 top-6 bottom-12 w-16 flex flex-col justify-between text-xs text-gray-600' },
-                        yAxisLabels.map((label, index) => 
-                            e('div', { key: index, className: 'text-right pr-2' }, label.toLocaleString())
-                        )
-                    ),
-                    
+                e('div', { key: 'chart', className: 'relative bg-white rounded-lg p-4', style: { height: `${height}px` } }, [
                     // Chart area
-                    e('div', { key: 'chart-area', className: 'ml-16 mr-4 h-full relative', style: { paddingBottom: '40px' } }, [
-                        // SVG Chart
+                    e('div', { key: 'chart-area', className: 'w-full h-full relative' }, [
+                        // SVG for the line
                         e('svg', { 
                             key: 'svg',
-                            className: 'absolute inset-0 w-full h-full',
+                            className: 'absolute inset-0 w-full',
                             style: { height: 'calc(100% - 40px)' },
                             viewBox: '0 0 100 100',
                             preserveAspectRatio: 'none'
                         }, [
-                            // Grid lines
-                            ...yAxisLabels.map((_, index) => 
-                                e('line', {
-                                    key: `grid-${index}`,
-                                    x1: '0',
-                                    y1: (index * 20).toString(),
-                                    x2: '100',
-                                    y2: (index * 20).toString(),
-                                    stroke: '#e5e7eb',
-                                    strokeWidth: '0.5'
-                                })
-                            ),
-                            
-                            // Area fill
-                            e('path', {
-                                key: 'area',
-                                d: areaPath,
-                                fill: color,
-                                fillOpacity: '0.1'
-                            }),
-                            
-                            // Main line
-                            e('path', {
+                            // Create line path
+                            e('polyline', {
                                 key: 'line',
-                                d: pathData,
                                 fill: 'none',
                                 stroke: color,
                                 strokeWidth: '2',
-                                strokeLinecap: 'round',
-                                strokeLinejoin: 'round'
+                                points: data.map((item, index) => {
+                                    const x = (index / (data.length - 1)) * 100;
+                                    const y = 100 - (range > 0 ? ((item[dataKey] - minValue) / range) * 80 + 10 : 50);
+                                    return `${x},${y}`;
+                                }).join(' ')
                             }),
                             
                             // Data points
-                            ...points.map((point, index) => 
-                                e('circle', {
+                            ...data.map((item, index) => {
+                                const x = (index / (data.length - 1)) * 100;
+                                const y = 100 - (range > 0 ? ((item[dataKey] - minValue) / range) * 80 + 10 : 50);
+                                return e('circle', {
                                     key: `point-${index}`,
-                                    cx: point.x.toString(),
-                                    cy: point.y.toString(),
-                                    r: '2',
+                                    cx: x,
+                                    cy: y,
+                                    r: '3',
                                     fill: color,
-                                    stroke: '#ffffff',
-                                    strokeWidth: '2',
-                                    className: 'hover:r-3 transition-all cursor-pointer'
-                                })
-                            )
+                                    stroke: 'white',
+                                    strokeWidth: '2'
+                                });
+                            })
                         ]),
                         
-                        // X-axis labels
-                        e('div', { key: 'x-axis', className: 'absolute bottom-0 left-0 right-0 flex justify-between text-xs text-gray-600' },
-                            data.map((item, index) => {
-                                // Show every other label to avoid crowding
-                                if (data.length > 8 && index % 2 !== 0) return null;
-                                return e('div', { 
+                        // X-axis labels (months)
+                        e('div', { key: 'x-labels', className: 'absolute bottom-0 left-0 right-0 flex justify-between text-xs text-gray-600' },
+                            data.map((item, index) => 
+                                e('div', { 
                                     key: index, 
-                                    className: 'text-center transform -rotate-45 origin-top-left',
-                                    style: { 
-                                        width: '60px',
-                                        marginLeft: index === 0 ? '0' : '-30px'
-                                    }
-                                }, item[nameKey]);
-                            })
-                        ),
-                        
-                        // Hover tooltips
-                        points.map((point, index) => 
-                            e('div', {
-                                key: `tooltip-${index}`,
-                                className: 'absolute bg-gray-800 text-white px-3 py-2 rounded-lg shadow-lg opacity-0 hover:opacity-100 transition-opacity pointer-events-none z-10',
-                                style: {
-                                    left: `${point.x}%`,
-                                    top: `${point.y}%`,
-                                    transform: 'translate(-50%, -100%)',
-                                    marginTop: '-10px'
-                                }
-                            }, [
-                                e('div', { key: 'label', className: 'text-sm font-medium' }, point.label),
-                                e('div', { key: 'value', className: 'text-xs' }, point.value.toLocaleString() + ' requests')
-                            ])
+                                    className: 'text-center',
+                                    style: { transform: 'rotate(-45deg)', transformOrigin: 'center' }
+                                }, item[nameKey])
+                            )
                         )
                     ])
                 ]),
                 
-                // Statistics summary
-                e('div', { key: 'stats', className: 'grid grid-cols-2 md:grid-cols-4 gap-4 text-sm' }, [
-                    e('div', { key: 'total', className: 'text-center p-3 bg-blue-50 rounded-lg' }, [
-                        e('div', { className: 'font-bold text-blue-600' }, data.reduce((sum, d) => sum + d[dataKey], 0).toLocaleString()),
-                        e('div', { className: 'text-gray-600' }, 'Totaal Requests')
-                    ]),
-                    e('div', { key: 'avg', className: 'text-center p-3 bg-green-50 rounded-lg' }, [
-                        e('div', { className: 'font-bold text-green-600' }, Math.round(data.reduce((sum, d) => sum + d[dataKey], 0) / data.length).toLocaleString()),
-                        e('div', { className: 'text-gray-600' }, 'Gemiddeld/Maand')
-                    ]),
-                    e('div', { key: 'max', className: 'text-center p-3 bg-orange-50 rounded-lg' }, [
-                        e('div', { className: 'font-bold text-orange-600' }, maxValue.toLocaleString()),
-                        e('div', { className: 'text-gray-600' }, 'Hoogste Piek')
-                    ]),
-                    e('div', { key: 'growth', className: 'text-center p-3 bg-purple-50 rounded-lg' }, [
-                        e('div', { className: 'font-bold text-purple-600' }, 
-                            data.length > 1 ? 
-                                `${((data[data.length - 1][dataKey] - data[0][dataKey]) / data[0][dataKey] * 100).toFixed(1)}%` 
-                                : 'N/A'
-                        ),
-                        e('div', { className: 'text-gray-600' }, 'Groei')
-                    ])
-                ])
+                // Summary
+                e('div', { key: 'summary', className: 'text-center text-sm text-gray-600 bg-blue-50 rounded p-3' },
+                    `Totaal: ${data.reduce((sum, d) => sum + d[dataKey], 0).toLocaleString()} requests over ${data.length} periodes`
+                )
             ]);
         };
 
@@ -1731,7 +1638,7 @@
                                         dataKey: 'requests', 
                                         nameKey: 'month', 
                                         color: '#3b82f6',
-                                        height: 400
+                                        height: 300
                                     })
                                 ]
                             ),
