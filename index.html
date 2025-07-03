@@ -807,7 +807,7 @@
             ]);
         };
 
-        const SimpleLineChart = ({ data, dataKey, nameKey, color = '#3b82f6', height = 300 }) => {
+        const SimpleLineChart = ({ data, dataKey, nameKey, color = '#3b82f6', height = 500 }) => {
             if (!data || data.length === 0) return e('div', { className: 'text-center py-8 text-gray-500' }, 'Geen data beschikbaar');
             
             const maxValue = Math.max(...data.map(d => d[dataKey]));
@@ -817,14 +817,14 @@
             // Calculate coordinates for each point
             const points = data.map((item, index) => {
                 const x = (index / Math.max(data.length - 1, 1)) * 100;
-                const y = range > 0 ? (100 - ((item[dataKey] - minValue) / range) * 80) : 50;
+                const y = range > 0 ? (100 - ((item[dataKey] - minValue) / range) * 70) - 10 : 50;
                 return { x, y, value: item[dataKey], label: item[nameKey] };
             });
             
             return e('div', { className: 'space-y-4' }, [
-                e('div', { key: 'chart', className: 'relative bg-white rounded-lg border p-6', style: { height: `${height}px` } }, [
+                e('div', { key: 'chart', className: 'relative bg-white rounded-lg border p-8', style: { height: `${height}px` } }, [
                     // Chart container
-                    e('div', { key: 'chart-container', className: 'w-full relative', style: { height: 'calc(100% - 50px)' } }, [
+                    e('div', { key: 'chart-container', className: 'w-full relative', style: { height: 'calc(100% - 80px)' } }, [
                         // SVG Chart
                         e('svg', { 
                             key: 'svg',
@@ -833,7 +833,7 @@
                             viewBox: '0 0 100 100',
                             className: 'overflow-visible'
                         }, [
-                            // Grid lines (optional)
+                            // Grid lines
                             e('defs', { key: 'defs' }, [
                                 e('pattern', {
                                     key: 'grid',
@@ -846,8 +846,8 @@
                                         key: 'grid-path',
                                         d: 'M 10 0 L 0 0 0 10',
                                         fill: 'none',
-                                        stroke: '#f0f0f0',
-                                        strokeWidth: '1'
+                                        stroke: '#f8f9fa',
+                                        strokeWidth: '0.5'
                                     })
                                 ])
                             ]),
@@ -860,12 +860,20 @@
                                 fill: 'url(#grid)'
                             }),
                             
+                            // Area under line (optional)
+                            e('polygon', {
+                                key: 'area',
+                                fill: color,
+                                fillOpacity: '0.1',
+                                points: `0,100 ${points.map(p => `${p.x},${p.y}`).join(' ')} 100,100`
+                            }),
+                            
                             // Main line
                             e('polyline', {
                                 key: 'line',
                                 fill: 'none',
                                 stroke: color,
-                                strokeWidth: '3',
+                                strokeWidth: '4',
                                 strokeLinecap: 'round',
                                 strokeLinejoin: 'round',
                                 points: points.map(p => `${p.x},${p.y}`).join(' ')
@@ -877,43 +885,43 @@
                                     key: `point-${index}`,
                                     cx: point.x,
                                     cy: point.y,
-                                    r: '2',
+                                    r: '3',
                                     fill: color,
                                     stroke: 'white',
-                                    strokeWidth: '2',
-                                    className: 'hover:r-4 transition-all cursor-pointer'
+                                    strokeWidth: '3',
+                                    className: 'hover:r-5 transition-all cursor-pointer'
                                 })
                             ),
                             
-                            // Value labels on hover
+                            // Value labels
                             ...points.map((point, index) => 
                                 e('text', {
                                     key: `label-${index}`,
                                     x: point.x,
-                                    y: point.y - 5,
+                                    y: point.y - 8,
                                     textAnchor: 'middle',
-                                    fontSize: '3',
+                                    fontSize: '4',
                                     fill: color,
-                                    className: 'opacity-0 hover:opacity-100 transition-opacity pointer-events-none'
+                                    fontWeight: 'bold',
+                                    className: 'pointer-events-none'
                                 }, point.value.toLocaleString())
                             )
                         ])
                     ]),
                     
                     // X-axis labels
-                    e('div', { key: 'x-axis', className: 'absolute bottom-0 left-0 right-0 h-12 flex items-center justify-between px-6' },
+                    e('div', { key: 'x-axis', className: 'absolute bottom-4 left-8 right-8 flex items-center justify-between' },
                         data.map((item, index) => 
                             e('div', { 
                                 key: index, 
-                                className: 'text-xs text-gray-600 text-center transform -rotate-45 origin-center whitespace-nowrap',
-                                style: { fontSize: '10px' }
+                                className: 'text-sm text-gray-700 font-medium text-center transform -rotate-45 origin-center whitespace-nowrap'
                             }, item[nameKey])
                         )
                     )
                 ]),
                 
                 // Summary
-                e('div', { key: 'summary', className: 'text-center text-sm text-gray-600 bg-blue-50 rounded p-3' },
+                e('div', { key: 'summary', className: 'text-center text-base text-gray-600 bg-blue-50 rounded-lg p-4' },
                     `Totaal: ${data.reduce((sum, d) => sum + d[dataKey], 0).toLocaleString()} requests over ${data.length} periodes`
                 )
             ]);
@@ -1681,7 +1689,7 @@
                                         dataKey: 'requests', 
                                         nameKey: 'month', 
                                         color: '#3b82f6',
-                                        height: 300
+                                        height: 500
                                     })
                                 ]
                             ),
