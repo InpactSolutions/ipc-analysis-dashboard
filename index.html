@@ -1157,9 +1157,10 @@
                             productCategory: categorizeProduct(row.Product),
                             gimFunction: gimFunction,
                             gimDescription: gimDescription,
-                            gimDisplayName: gimFunction ? `${gimFunction} - ${gimDescription}` : 'Onbekend',
+                            gimDisplayName: gimFunction ? `${gimFunction} - ${gimDescription}` : '(Leeg)',
                             hasValidDate: !!date,
                             hasValidUser: !!actualUser && actualUser !== 'NULL',
+                            hasValidGimFunction: !!gimFunction,
                             completeness: calculateCompleteness(row)
                         };
                     });
@@ -1173,7 +1174,7 @@
                     const allInsurers = _.uniq(processedData.map(d => d.Insurer)).filter(Boolean).sort();
                     const allProducts = _.uniq(processedData.map(d => d.Product)).filter(Boolean).sort();
                     const allUsers = _.uniq(processedData.map(d => d.userDisplayName)).filter(Boolean).sort();
-                    const allGimFunctions = _.uniq(processedData.map(d => d.gimDisplayName)).filter(d => d && d !== 'Onbekend').sort();
+                    const allGimFunctions = _.uniq(processedData.map(d => d.gimDisplayName)).filter(Boolean).sort();
                     const allYears = _.uniq(processedData.filter(d => d.YyyyMm).map(d => d.YyyyMm.getFullYear())).sort().reverse();
 
                     console.log('Unique values extracted:');
@@ -1229,7 +1230,7 @@
                 return products;
             };
 
-            // Get filtered users based on selected insurers and products
+                                // Get filtered users based on selected insurers and products
             const getFilteredUsers = () => {
                 let baseData = data;
                 
@@ -1244,6 +1245,34 @@
                 
                 const users = _.uniq(baseData.map(d => d.userDisplayName)).filter(Boolean).sort();
                 return users;
+            };
+
+            // Get filtered GIM functions based on selected filters
+            const getFilteredGimFunctions = () => {
+                let baseData = data;
+                
+                // Filter by other selected filters to show only relevant GIM functions
+                if (filters.environment.length > 0) {
+                    baseData = baseData.filter(d => filters.environment.includes(d.Environment));
+                }
+                if (filters.insurer.length > 0) {
+                    baseData = baseData.filter(d => filters.insurer.includes(d.Insurer));
+                }
+                if (filters.product.length > 0) {
+                    baseData = baseData.filter(d => filters.product.includes(d.Product));
+                }
+                if (filters.user.length > 0) {
+                    baseData = baseData.filter(d => filters.user.includes(d.userDisplayName));
+                }
+                if (filters.selectedYear !== 'all') {
+                    baseData = baseData.filter(d => d.YyyyMm && d.YyyyMm.getFullYear() === parseInt(filters.selectedYear));
+                }
+                if (filters.selectedMonth !== 'all') {
+                    baseData = baseData.filter(d => d.YyyyMm && (d.YyyyMm.getMonth() + 1) === parseInt(filters.selectedMonth));
+                }
+                
+                const gimFunctions = _.uniq(baseData.map(d => d.gimDisplayName)).filter(Boolean).sort();
+                return gimFunctions;
             };
 
             // Notification system
@@ -1289,12 +1318,15 @@
                 applyFilters();
             }, [applyFilters]);
 
-            // Statistics
+                            // Statistics
             const stats = useMemo(() => {
                 const totalRequests = filteredData.reduce((sum, d) => sum + d.Aantal, 0);
                 const uniqueUsers = _.uniq(filteredData.map(d => d.actualUser)).length;
                 const uniqueProducts = _.uniq(filteredData.map(d => d.Product)).length;
                 const uniqueInsurers = _.uniq(filteredData.map(d => d.Insurer)).length;
+                const uniqueGimFunctions = _.uniq(filteredData.filter(d => d.gimFunction).map(d => d.gimFunction)).length;
+                const recordsWithGimFunction = filteredData.filter(d => d.gimFunction).length;
+                const recordsWithoutGimFunction = filteredData.filter(d => !d.gimFunction).length;
                 const avgPerMonth = filteredData.length > 0 ? Math.round(totalRequests / _.uniq(filteredData.map(d => d.month)).length) : 0;
                 const dataQuality = _.mean(filteredData.map(d => d.completeness)) || 0;
 
@@ -1303,6 +1335,9 @@
                     uniqueUsers,
                     uniqueProducts,
                     uniqueInsurers,
+                    uniqueGimFunctions,
+                    recordsWithGimFunction,
+                    recordsWithoutGimFunction,
                     avgPerMonth,
                     totalRecords: filteredData.length,
                     dataQuality
@@ -1360,7 +1395,7 @@
             };
 
             const getGimFunctionData = () => {
-                const grouped = _.groupBy(filteredData.filter(d => d.gimFunction !== null), 'gimDisplayName');
+                const grouped = _.groupBy(filteredData, 'gimDisplayName');
                 return Object.entries(grouped)
                     .map(([gimFunc, records]) => ({
                         gimFunction: gimFunc.length > 30 ? gimFunc.substring(0, 30) + '...' : gimFunc,
@@ -1701,7 +1736,7 @@
                                                 'GIM Functie'
                                             ]),
                                             e(MultiSelectDropdown, {
-                                                options: uniqueValues.gimFunctions,
+                                                options: getFilteredGimFunctions(),
                                                 selectedValues: filters.gimFunction,
                                                 onToggle: (value) => handleMultiSelectFilter('gimFunction', value),
                                                 placeholder: 'Selecteer GIM functies...',
@@ -1766,7 +1801,7 @@
                         ),
 
                         e('div', 
-                            { key: 'stats', className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-6' },
+                            { key: 'stats', className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4 mb-6' },
                             [
                                 {
                                     title: 'Totaal Requests',
@@ -1793,16 +1828,22 @@
                                     color: 'orange'
                                 },
                                 {
-                                    title: 'Gem. per Maand',
-                                    value: stats.avgPerMonth.toLocaleString(),
-                                    icon: Calendar,
-                                    color: 'pink'
+                                    title: 'GIM Functies',
+                                    value: stats.uniqueGimFunctions,
+                                    icon: Package,
+                                    color: 'purple'
                                 },
                                 {
-                                    title: 'Data Kwaliteit',
-                                    value: `${stats.dataQuality.toFixed(1)}%`,
+                                    title: 'Met GIM',
+                                    value: stats.recordsWithGimFunction.toLocaleString(),
                                     icon: Eye,
-                                    color: 'cyan'
+                                    color: 'green'
+                                },
+                                {
+                                    title: 'Zonder GIM',
+                                    value: stats.recordsWithoutGimFunction.toLocaleString(),
+                                    icon: AlertTriangle,
+                                    color: 'red'
                                 }
                             ].map((stat, index) =>
                                 e('div', 
