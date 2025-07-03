@@ -1119,54 +1119,43 @@
                             `${actualUser} (VE)` : 
                             `${actualUser} (Reg)`;
                         
-                        // TEMPORARY DEBUG - Let's see what's actually in the data
-                        console.log('Processing row:', {
-                            Engine: row.Engine,
-                            Insurer: row.Insurer,
-                            Product: row.Product,
-                            allColumns: Object.keys(row)
-                        });
-                        
-                        // Extract GIM function - SIMPLE APPROACH FOR NOW
+                        // Extract GIM function from "Soort berekening" column
                         let gimFunction = null;
                         let gimDescription = 'Onbekend';
                         
-                        // FOR NOW: Let's just categorize based on what we know exists
-                        // This is temporary to get the dropdown working
-                        if (row.Engine && typeof row.Engine === 'string') {
-                            const engine = row.Engine.toLowerCase();
+                        if (row['Soort berekening'] && row['Soort berekening'] !== '-') {
+                            const soortBerekening = row['Soort berekening'].toString();
                             
-                            // Simple categorization based on engine types for now
-                            if (engine.includes('aanvragen') || engine.includes('request')) {
-                                gimFunction = 2000;
-                                gimDescription = 'aanvragen';
-                            } else if (engine.includes('muteren') || engine.includes('update')) {
-                                gimFunction = 2001;
-                                gimDescription = 'muteren';
-                            } else if (engine.includes('raadplegen') || engine.includes('query')) {
-                                gimFunction = 2003;
-                                gimDescription = 'raadplegen';
-                            } else if (engine.includes('opvragen') || engine.includes('get')) {
-                                gimFunction = 1000;
-                                gimDescription = 'gegevens opvragen';
-                            } else {
-                                // Default - assign based on insurer or product patterns
-                                if (row.Product && row.Product.includes('AUTO')) {
-                                    gimFunction = 2000;
-                                    gimDescription = 'aanvragen';
-                                } else if (row.Product && row.Product.includes('WONING')) {
-                                    gimFunction = 2001;
-                                    gimDescription = 'muteren';
-                                } else {
-                                    gimFunction = 1000;
-                                    gimDescription = 'gegevens opvragen';
+                            // Extract GIM code from "Soort berekening" column
+                            const matches = soortBerekening.match(/\d+/g);
+                            if (matches) {
+                                for (const match of matches) {
+                                    const code = parseInt(match);
+                                    if (gimFunctions[code]) {
+                                        gimFunction = code;
+                                        gimDescription = gimFunctions[code];
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            // If no exact match found, check if it's a direct GIM code
+                            if (!gimFunction) {
+                                const directCode = parseInt(soortBerekening);
+                                if (!isNaN(directCode) && gimFunctions[directCode]) {
+                                    gimFunction = directCode;
+                                    gimDescription = gimFunctions[directCode];
                                 }
                             }
                         }
                         
-                        // Stop logging after first few rows
+                        // Debug logging for first few rows
                         if (index < 5) {
-                            console.log('Assigned GIM function:', gimFunction, gimDescription);
+                            console.log('Row', index, {
+                                'Soort berekening': row['Soort berekening'],
+                                'Found GIM': gimFunction,
+                                'Description': gimDescription
+                            });
                         }
                         
                         return {
@@ -1201,30 +1190,21 @@
                     const allInsurers = _.uniq(processedData.map(d => d.Insurer)).filter(Boolean).sort();
                     const allProducts = _.uniq(processedData.map(d => d.Product)).filter(Boolean).sort();
                     const allUsers = _.uniq(processedData.map(d => d.userDisplayName)).filter(Boolean).sort();
-                    // Debug: Analyze engines in detail
-                    console.log('=== ENGINE ANALYSIS ===');
-                    const engineSample = rawData.slice(0, 50);
-                    const engineAnalysis = {};
+                    // Debug: Analyze "Soort berekening" column
+                    console.log('=== SOORT BEREKENING ANALYSIS ===');
+                    const soortBerekeningValues = _.uniq(rawData.map(r => r['Soort berekening'])).filter(Boolean);
+                    console.log('Unique "Soort berekening" values:', soortBerekeningValues);
                     
-                    engineSample.forEach(row => {
-                        if (row.Engine) {
-                            const engine = row.Engine.toString();
-                            if (!engineAnalysis[engine]) {
-                                engineAnalysis[engine] = 0;
-                            }
-                            engineAnalysis[engine]++;
-                        }
+                    // Count how many of each
+                    const soortBerekeningCounts = {};
+                    rawData.forEach(row => {
+                        const soort = row['Soort berekening'] || '(Leeg)';
+                        soortBerekeningCounts[soort] = (soortBerekeningCounts[soort] || 0) + 1;
                     });
+                    console.log('Soort berekening counts:', soortBerekeningCounts);
                     
-                    console.log('Engine patterns found:', Object.keys(engineAnalysis));
-                    
-                    // Check if any engines contain potential GIM codes
-                    const potentialGimEngines = Object.keys(engineAnalysis).filter(engine => {
-                        const validCodes = [1000, 2000, 2001, 2002, 2003, 2015, 2030, 2031, 2051, 2052, 2053];
-                        return validCodes.some(code => engine.includes(code.toString()));
-                    });
-                    
-                    console.log('Engines with potential GIM codes:', potentialGimEngines);
+                    // Check GIM functions loaded
+                    console.log('Available GIM functions:', gimFunctions);
                     
                     // Extract only GIM functions that actually appear in the processed data
                     const actualGimFunctions = new Set();
