@@ -1085,8 +1085,11 @@
                                 gimFunctions[row.Code] = row.Description;
                             }
                         });
-                        console.log('Loaded GIM functions:', Object.keys(gimFunctions).length);
+                        console.log('Loaded GIM functions:', gimFunctions);
                     }
+                    
+                    // Debug: Log some engine examples to understand the pattern
+                    console.log('Sample engines for analysis:', rawData.slice(0, 20).map(r => r.Engine));
                     
                     if (rawData.length === 0) {
                         throw new Error('Data sheet is leeg');
@@ -1116,24 +1119,58 @@
                             `${actualUser} (VE)` : 
                             `${actualUser} (Reg)`;
                         
-                        // Extract GIM function from Engine name - STRICT validation
+                        // Extract GIM function from Engine name - MANUAL APPROACH
                         let gimFunction = null;
                         let gimDescription = 'Onbekend';
                         
                         if (row.Engine && typeof row.Engine === 'string') {
-                            // Define the EXACT GIM codes that should be recognized
-                            // Based on your screenshot: 1000, 2000, 2015, 2030, 2031, 2051, 2052, 2053
-                            const validGimCodes = [1000, 2000, 2015, 2030, 2031, 2051, 2052, 2053];
+                            const engine = row.Engine.toUpperCase();
                             
-                            // Extract all numbers from the engine name
-                            const matches = row.Engine.match(/\d+/g);
-                            if (matches) {
-                                for (const match of matches) {
-                                    const code = parseInt(match);
-                                    // ONLY accept codes from our strict whitelist AND that exist in gimFunctions
-                                    if (validGimCodes.includes(code) && gimFunctions[code]) {
+                            // Direct mapping based on engine patterns - NO REGEX
+                            // Check for specific GIM codes that might be in the engine name
+                            if (engine.includes('1000') || engine.includes('GIM1000')) {
+                                gimFunction = 1000;
+                                gimDescription = gimFunctions[1000] || 'gegevens opvragen';
+                            } else if (engine.includes('2000') || engine.includes('GIM2000')) {
+                                gimFunction = 2000;
+                                gimDescription = gimFunctions[2000] || 'aanvragen';
+                            } else if (engine.includes('2001') || engine.includes('GIM2001')) {
+                                gimFunction = 2001;
+                                gimDescription = gimFunctions[2001] || 'muteren';
+                            } else if (engine.includes('2002') || engine.includes('GIM2002')) {
+                                gimFunction = 2002;
+                                gimDescription = gimFunctions[2002] || 'verwijderen';
+                            } else if (engine.includes('2003') || engine.includes('GIM2003')) {
+                                gimFunction = 2003;
+                                gimDescription = gimFunctions[2003] || 'raadplegen';
+                            } else if (engine.includes('2015') || engine.includes('GIM2015')) {
+                                gimFunction = 2015;
+                                gimDescription = gimFunctions[2015] || 'functie 2015';
+                            } else if (engine.includes('2030') || engine.includes('GIM2030')) {
+                                gimFunction = 2030;
+                                gimDescription = gimFunctions[2030] || 'functie 2030';
+                            } else if (engine.includes('2031') || engine.includes('GIM2031')) {
+                                gimFunction = 2031;
+                                gimDescription = gimFunctions[2031] || 'functie 2031';
+                            } else if (engine.includes('2051') || engine.includes('GIM2051')) {
+                                gimFunction = 2051;
+                                gimDescription = gimFunctions[2051] || 'functie 2051';
+                            } else if (engine.includes('2052') || engine.includes('GIM2052')) {
+                                gimFunction = 2052;
+                                gimDescription = gimFunctions[2052] || 'functie 2052';
+                            } else if (engine.includes('2053') || engine.includes('GIM2053')) {
+                                gimFunction = 2053;
+                                gimDescription = gimFunctions[2053] || 'functie 2053';
+                            }
+                            
+                            // Alternative approach - check if engine contains known patterns
+                            if (!gimFunction) {
+                                // Try to match based on common engine patterns
+                                const validCodes = [1000, 2000, 2001, 2002, 2003, 2015, 2030, 2031, 2051, 2052, 2053];
+                                for (const code of validCodes) {
+                                    if (engine.includes(code.toString())) {
                                         gimFunction = code;
-                                        gimDescription = gimFunctions[code];
+                                        gimDescription = gimFunctions[code] || `functie ${code}`;
                                         break;
                                     }
                                 }
@@ -1172,11 +1209,30 @@
                     const allInsurers = _.uniq(processedData.map(d => d.Insurer)).filter(Boolean).sort();
                     const allProducts = _.uniq(processedData.map(d => d.Product)).filter(Boolean).sort();
                     const allUsers = _.uniq(processedData.map(d => d.userDisplayName)).filter(Boolean).sort();
-                    // Debug: Log the validation process
-                    const validGimCodes = [1000, 2000, 2015, 2030, 2031, 2051, 2052, 2053];
-                    console.log('Valid GIM codes whitelist:', validGimCodes);
-                    console.log('GIM functions from Excel:', Object.keys(gimFunctions).map(k => parseInt(k)));
-                    console.log('Sample engines:', rawData.slice(0, 10).map(r => r.Engine));
+                    // Debug: Analyze engines in detail
+                    console.log('=== ENGINE ANALYSIS ===');
+                    const engineSample = rawData.slice(0, 50);
+                    const engineAnalysis = {};
+                    
+                    engineSample.forEach(row => {
+                        if (row.Engine) {
+                            const engine = row.Engine.toString();
+                            if (!engineAnalysis[engine]) {
+                                engineAnalysis[engine] = 0;
+                            }
+                            engineAnalysis[engine]++;
+                        }
+                    });
+                    
+                    console.log('Engine patterns found:', Object.keys(engineAnalysis));
+                    
+                    // Check if any engines contain potential GIM codes
+                    const potentialGimEngines = Object.keys(engineAnalysis).filter(engine => {
+                        const validCodes = [1000, 2000, 2001, 2002, 2003, 2015, 2030, 2031, 2051, 2052, 2053];
+                        return validCodes.some(code => engine.includes(code.toString()));
+                    });
+                    
+                    console.log('Engines with potential GIM codes:', potentialGimEngines);
                     
                     // Extract only GIM functions that actually appear in the processed data
                     const actualGimFunctions = new Set();
