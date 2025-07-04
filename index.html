@@ -1178,20 +1178,16 @@
                 const [uploadError, setUploadError] = useState(null);
                 const [notifications, setNotifications] = useState([]);
                 const [searchTerms, setSearchTerms] = useState({
-                    user: '',
+                    gebruiker: '',
                     environment: '',
                     insurer: '',
-                    product: '',
-                    leverancier: '',
-                    veUser: ''
+                    product: ''
                 });
                 const [filters, setFilters] = useState({
                     environment: [],
                     insurer: [],
                     product: [],
-                    user: [],
-                    leverancier: [],
-                    veUser: [],
+                    gebruiker: [],
                     selectedYear: 'all',
                     selectedMonth: 'all'
                 });
@@ -1199,8 +1195,7 @@
                     environments: [],
                     insurers: [],
                     products: [],
-                    users: [],
-                    leveranciers: [],
+                    gebruikers: [],
                     years: [],
                     months: []
                 });
@@ -1412,21 +1407,14 @@
                         const allEnvironments = _.uniq(processedData.map(d => d.Environment)).filter(Boolean);
                         const allInsurers = _.uniq(processedData.map(d => d.Insurer)).filter(Boolean).sort();
                         const allProducts = _.uniq(processedData.map(d => d.Product)).filter(Boolean).sort();
-                        // Separate regular users from leveranciers based on final processing
-                        const allUsers = _.uniq(processedData.filter(d => !d.isLeverancier).map(d => d.userDisplayName)).filter(Boolean).sort();
-                        const allLeveranciers = _.uniq(processedData.filter(d => d.isLeverancier).map(d => d.userDisplayName)).filter(Boolean).sort();
-                        
-                        console.log('Final user categories:');
-                        console.log('Regular users:', allUsers.length);
-                        console.log('Leveranciers:', allLeveranciers.length);
+                        const allUsers = _.uniq(processedData.map(d => d.userDisplayName)).filter(Boolean).sort();
                         const allYears = _.uniq(processedData.filter(d => d.YyyyMm).map(d => d.YyyyMm.getFullYear())).sort().reverse();
 
                         setUniqueValues({
                             environments: allEnvironments,
                             insurers: allInsurers,
                             products: allProducts,
-                            users: allUsers,
-                            leveranciers: allLeveranciers,
+                            gebruikers: allUsers,
                             years: allYears,
                             months: [
                                 { value: 1, label: 'Januari' },
@@ -1458,114 +1446,61 @@
 
                 // Get filtered products based on selected insurers
                 const getFilteredProducts = () => {
-                    if (filters.insurer.length === 0) {
-                        return [];
-                    }
-                    
-                    const filteredByInsurer = data.filter(d => filters.insurer.includes(d.Insurer));
-                    const products = _.uniq(filteredByInsurer.map(d => d.Product)).filter(Boolean).sort();
-                    return products;
-                };
-
-                // Get filtered users based on selected insurers and products (excluding leveranciers)
-                const getFilteredUsers = () => {
-                    let baseData = data.filter(d => !d.isLeverancier); // Exclude leveranciers
-                    
-                    // Only filter by insurer if insurers are selected
-                    if (filters.insurer.length > 0) {
-                        baseData = baseData.filter(d => filters.insurer.includes(d.Insurer));
-                    }
-                    // Only filter by product if products are selected
-                    if (filters.product.length > 0) {
-                        baseData = baseData.filter(d => filters.product.includes(d.Product));
-                    }
-                    
-                    const users = _.uniq(baseData.map(d => d.userDisplayName)).filter(Boolean).sort();
-                    return users;
-                };
-
-                // Get VE users linked to selected leveranciers based on actual data
-                const getLinkedVEUsers = () => {
-                    if (filters.leverancier.length === 0) {
-                        return [];
-                    }
-                    
-                    // Get the normalized names of selected leveranciers (without (REG)/(VE) suffix)
-                    const selectedLeverancierNames = filters.leverancier.map(leverancier => 
-                        leverancier.replace(/\s+\((REG|VE)\)$/, '')
-                    );
-                    
-                    // Find all VE users that are actually linked to these leveranciers in the data
-                    const linkedVEUsers = data.filter(d => {
-                        // Check if this is a VE user
-                        if (d.userSource !== 'GebruikerVe') return false;
-                        
-                        // Check if the normalized name matches any selected leverancier
-                        const normalizedName = d.normalizedUser;
-                        return selectedLeverancierNames.includes(normalizedName);
-                    });
-                    
-                    // Only return VE users that actually exist in the data
-                    const availableVEUsers = _.uniq(linkedVEUsers.map(d => d.userDisplayName)).filter(Boolean);
-                    
-                    // Also apply other active filters to show only relevant VE users
-                    let filteredVEUsers = linkedVEUsers;
-                    
-                    // Apply environment filter if active
-                    if (filters.environment.length > 0) {
-                        filteredVEUsers = filteredVEUsers.filter(d => filters.environment.includes(d.Environment));
-                    }
+                    let baseData = data;
                     
                     // Apply insurer filter if active
                     if (filters.insurer.length > 0) {
-                        filteredVEUsers = filteredVEUsers.filter(d => filters.insurer.includes(d.Insurer));
+                        baseData = baseData.filter(d => filters.insurer.includes(d.Insurer));
+                    }
+                    
+                    // Apply other filters for context
+                    if (filters.environment.length > 0) {
+                        baseData = baseData.filter(d => filters.environment.includes(d.Environment));
+                    }
+                    
+                    if (filters.selectedYear !== 'all') {
+                        baseData = baseData.filter(d => d.YyyyMm && d.YyyyMm.getFullYear() === parseInt(filters.selectedYear));
+                    }
+                    
+                    if (filters.selectedMonth !== 'all') {
+                        baseData = baseData.filter(d => d.YyyyMm && (d.YyyyMm.getMonth() + 1) === parseInt(filters.selectedMonth));
+                    }
+                    
+                    const products = _.uniq(baseData.map(d => d.Product)).filter(Boolean).sort();
+                    return products;
+                };
+
+                // Get filtered users based on selected insurers and products
+                const getFilteredGebruikers = () => {
+                    let baseData = data;
+                    
+                    // Apply insurer filter if active
+                    if (filters.insurer.length > 0) {
+                        baseData = baseData.filter(d => filters.insurer.includes(d.Insurer));
                     }
                     
                     // Apply product filter if active
                     if (filters.product.length > 0) {
-                        filteredVEUsers = filteredVEUsers.filter(d => filters.product.includes(d.Product));
+                        baseData = baseData.filter(d => filters.product.includes(d.Product));
                     }
                     
                     // Apply date filters if active
                     if (filters.selectedYear !== 'all') {
-                        filteredVEUsers = filteredVEUsers.filter(d => d.YyyyMm && d.YyyyMm.getFullYear() === parseInt(filters.selectedYear));
+                        baseData = baseData.filter(d => d.YyyyMm && d.YyyyMm.getFullYear() === parseInt(filters.selectedYear));
                     }
                     
                     if (filters.selectedMonth !== 'all') {
-                        filteredVEUsers = filteredVEUsers.filter(d => d.YyyyMm && (d.YyyyMm.getMonth() + 1) === parseInt(filters.selectedMonth));
+                        baseData = baseData.filter(d => d.YyyyMm && (d.YyyyMm.getMonth() + 1) === parseInt(filters.selectedMonth));
                     }
                     
-                    // Return only VE users that exist in the filtered data
-                    const contextualVEUsers = _.uniq(filteredVEUsers.map(d => d.userDisplayName)).filter(Boolean).sort();
-                    
-                    return contextualVEUsers;
-                };
-
-                // Get statistics for selected leverancier and their VE users
-                const getLeverancierVEStats = () => {
-                    if (filters.leverancier.length === 0) {
-                        return null;
+                    // Apply environment filter if active
+                    if (filters.environment.length > 0) {
+                        baseData = baseData.filter(d => filters.environment.includes(d.Environment));
                     }
                     
-                    const selectedLeverancierNames = filters.leverancier.map(leverancier => 
-                        leverancier.replace(/\s+\((REG|VE)\)$/, '')
-                    );
-                    
-                    const leverancierData = data.filter(d => 
-                        selectedLeverancierNames.includes(d.normalizedUser)
-                    );
-                    
-                    const regData = leverancierData.filter(d => d.userSource === 'Gebruiker');
-                    const veData = leverancierData.filter(d => d.userSource === 'GebruikerVe');
-                    
-                    return {
-                        totalRecords: leverancierData.length,
-                        regRecords: regData.length,
-                        veRecords: veData.length,
-                        regRequests: regData.reduce((sum, d) => sum + d.Aantal, 0),
-                        veRequests: veData.reduce((sum, d) => sum + d.Aantal, 0),
-                        availableVEUsers: _.uniq(veData.map(d => d.userDisplayName)).length
-                    };
+                    // Return all unique users from the filtered data
+                    const availableUsers = _.uniq(baseData.map(d => d.userDisplayName)).filter(Boolean).sort();
+                    return availableUsers;
                 };
 
                 // Notification system
@@ -1590,14 +1525,8 @@
                     if (filters.product.length > 0) {
                         filtered = filtered.filter(d => filters.product.includes(d.Product));
                     }
-                    if (filters.user.length > 0) {
-                        filtered = filtered.filter(d => filters.user.includes(d.userDisplayName));
-                    }
-                    if (filters.leverancier.length > 0) {
-                        filtered = filtered.filter(d => filters.leverancier.includes(d.userDisplayName));
-                    }
-                    if (filters.veUser.length > 0) {
-                        filtered = filtered.filter(d => filters.veUser.includes(d.userDisplayName));
+                    if (filters.gebruiker.length > 0) {
+                        filtered = filtered.filter(d => filters.gebruiker.includes(d.userDisplayName));
                     }
 
                     if (filters.selectedYear !== 'all') {
@@ -1720,17 +1649,6 @@
                             newFilters[type] = newFilters[type].filter(v => v !== value);
                         } else {
                             newFilters[type] = [...newFilters[type], value];
-                        }
-                        
-                        // Clear dependent filters when changing insurer
-                        if (type === 'insurer') {
-                            newFilters.product = [];
-                            // Don't clear users or leveranciers when changing insurer
-                        }
-                        
-                        // Clear VE users when leverancier selection changes
-                        if (type === 'leverancier') {
-                            newFilters.veUser = [];
                         }
                         
                         return newFilters;
@@ -1941,7 +1859,7 @@
                                         e('h2', { className: 'text-lg font-semibold' }, 'Geavanceerde Filters')
                                     ]),
                                     e('div', { key: 'filter-content', className: 'space-y-4' }, [
-                                        e('div', { className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4' }, [
+                                        e('div', { className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4' }, [
                                             e('div', { key: 'env-filter' }, [
                                                 e('label', { className: 'block text-sm font-medium mb-2' }, 'Environment'),
                                                 e(MultiSelectDropdown, {
@@ -1972,20 +1890,16 @@
 
                                             e('div', { key: 'product-filter' }, [
                                                 e('label', { className: 'block text-sm font-medium mb-2' }, 'Product'),
-                                                filters.insurer.length === 0 ? 
-                                                    e('div', { className: `px-3 py-2 text-sm text-gray-500 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-100 border-gray-300'}` },
-                                                        'Selecteer eerst verzekeraar'
-                                                    ) :
-                                                    e(MultiSelectDropdown, {
-                                                        options: getFilteredProducts(),
-                                                        selectedValues: filters.product,
-                                                        onToggle: (value) => handleMultiSelectFilter('product', value),
-                                                        placeholder: 'Selecteer producten...',
-                                                        darkMode: darkMode,
-                                                        searchTerm: searchTerms.product,
-                                                        onSearchChange: (term) => setSearchTerms(prev => ({ ...prev, product: term })),
-                                                        showSearch: getFilteredProducts().length > 5
-                                                    })
+                                                e(MultiSelectDropdown, {
+                                                    options: getFilteredProducts(),
+                                                    selectedValues: filters.product,
+                                                    onToggle: (value) => handleMultiSelectFilter('product', value),
+                                                    placeholder: 'Selecteer producten...',
+                                                    darkMode: darkMode,
+                                                    searchTerm: searchTerms.product,
+                                                    onSearchChange: (term) => setSearchTerms(prev => ({ ...prev, product: term })),
+                                                    showSearch: getFilteredProducts().length > 5
+                                                })
                                             ]),
 
                                             e('div', { key: 'user-filter' }, [
@@ -1994,56 +1908,16 @@
                                                     'Gebruiker'
                                                 ]),
                                                 e(MultiSelectDropdown, {
-                                                    options: getFilteredUsers(),
-                                                    selectedValues: filters.user,
-                                                    onToggle: (value) => handleMultiSelectFilter('user', value),
+                                                    options: getFilteredGebruikers(),
+                                                    selectedValues: filters.gebruiker,
+                                                    onToggle: (value) => handleMultiSelectFilter('gebruiker', value),
                                                     placeholder: 'Selecteer gebruikers...',
                                                     darkMode: darkMode,
-                                                    searchTerm: searchTerms.user,
-                                                    onSearchChange: (term) => setSearchTerms(prev => ({ ...prev, user: term })),
+                                                    searchTerm: searchTerms.gebruiker,
+                                                    onSearchChange: (term) => setSearchTerms(prev => ({ ...prev, gebruiker: term })),
                                                     showSearch: true,
                                                     maxHeight: '250px'
                                                 })
-                                            ]),
-
-                                            e('div', { key: 'leverancier-filter' }, [
-                                                e('label', { className: 'block text-sm font-medium mb-2 flex items-center gap-2' }, [
-                                                    e(Package, { className: 'w-4 h-4' }),
-                                                    'Leverancier'
-                                                ]),
-                                                e(MultiSelectDropdown, {
-                                                    options: uniqueValues.leveranciers,
-                                                    selectedValues: filters.leverancier,
-                                                    onToggle: (value) => handleMultiSelectFilter('leverancier', value),
-                                                    placeholder: 'Selecteer leveranciers...',
-                                                    darkMode: darkMode,
-                                                    searchTerm: searchTerms.leverancier,
-                                                    onSearchChange: (term) => setSearchTerms(prev => ({ ...prev, leverancier: term })),
-                                                    showSearch: true,
-                                                    maxHeight: '250px'
-                                                })
-                                            ]),
-
-                                            e('div', { key: 've-user-filter' }, [
-                                                e('label', { className: 'block text-sm font-medium mb-2 flex items-center gap-2' }, [
-                                                    e(Users, { className: 'w-4 h-4' }),
-                                                    'VE Gebruiker'
-                                                ]),
-                                                filters.leverancier.length === 0 ? 
-                                                    e('div', { className: `px-3 py-2 text-sm text-gray-500 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-100 border-gray-300'}` },
-                                                        'Selecteer eerst leverancier'
-                                                    ) :
-                                                    e(MultiSelectDropdown, {
-                                                        options: getLinkedVEUsers(),
-                                                        selectedValues: filters.veUser,
-                                                        onToggle: (value) => handleMultiSelectFilter('veUser', value),
-                                                        placeholder: 'Selecteer VE gebruikers...',
-                                                        darkMode: darkMode,
-                                                        searchTerm: searchTerms.veUser,
-                                                        onSearchChange: (term) => setSearchTerms(prev => ({ ...prev, veUser: term })),
-                                                        showSearch: true,
-                                                        maxHeight: '250px'
-                                                    })
                                             ]),
 
                                             e('div', { key: 'date-filters', className: 'space-y-3' }, [
@@ -2227,20 +2101,13 @@
                                     e('div', { key: 'info', className: 'mb-4 p-3 bg-green-50 rounded-lg border border-green-200' }, [
                                         e('p', { className: 'text-sm text-green-700 mb-2' }, [
                                             e('strong', { key: 'bold' }, 'Gecorrigeerde Logica: '),
-                                            'Requests van leveranciers tellen nu correct onder de VE gebruiker. REG=VE op zelfde rij telt als 1 gebruiker.'
+                                            'Alle gebruikers zijn nu correct genormaliseerd en gecombineerd voor accurate analyse.'
                                         ]),
                                         e('div', { key: 'processing-info', className: 'text-xs text-green-600 mt-2' }, [
-                                            e('div', { key: 'rule1' }, '• REG = VE op zelfde rij → telt als 1 gebruiker (REG)'),
-                                            e('div', { key: 'rule2' }, '• REG is leverancier → requests tellen onder VE gebruiker'),
-                                            e('div', { key: 'rule3' }, '• REG ≠ VE en REG geen leverancier → gebruik VE gebruiker')
-                                        ]),
-                                        filters.leverancier.length > 0 && (() => {
-                                            const stats = getLeverancierVEStats();
-                                            return stats && e('div', { key: 'leverage-stats', className: 'text-xs text-green-600 mt-2 p-2 bg-green-100 rounded' }, [
-                                                e('div', { key: 'title', className: 'font-semibold' }, 'Geselecteerde Leverancier Statistieken:'),
-                                                e('div', { key: 'stats' }, `${stats.regRecords} REG records (${stats.regRequests.toLocaleString()} requests) • ${stats.veRecords} VE records (${stats.veRequests.toLocaleString()} requests) • ${stats.availableVEUsers} unieke VE gebruikers`)
-                                            ]);
-                                        })()
+                                            e('div', { key: 'rule1' }, '• Leverancier requests tellen onder de juiste eindgebruiker'),
+                                            e('div', { key: 'rule2' }, '• Duplicate REG/VE gebruikers zijn gecombineerd'),
+                                            e('div', { key: 'rule3' }, '• Bedrijfsnamen zijn genormaliseerd (zonder nummers)')
+                                        ])
                                     ]),
                                     e(SimpleBarChart, { 
                                         key: 'chart',
@@ -2274,7 +2141,7 @@
                                         e('span', { key: 'sep1' }, '•'),
                                         e('span', { key: 'records' }, `${filteredData.length.toLocaleString()} van ${data.length.toLocaleString()} records`),
                                         e('span', { key: 'sep2' }, '•'),
-                                        e('span', { key: 'version' }, 'v2.0')
+                                        e('span', { key: 'version' }, 'v2.1')
                                     ])
                                 ])
                             )
