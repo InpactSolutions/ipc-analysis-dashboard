@@ -400,6 +400,7 @@
             .lg\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
             .lg\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+            .lg\:grid-cols-7 { grid-template-columns: repeat(7, minmax(0, 1fr)); }
             .lg\:flex-row { flex-direction: row; }
             .lg\:items-center { align-items: center; }
             .lg\:justify-between { justify-content: space-between; }
@@ -549,20 +550,21 @@
                 e('path', { key: 1, d: "M20 6 9 17l-5-5" })
             ]);
 
-            const Share = ({ className }) => e('svg', {
+            const Building = ({ className }) => e('svg', {
                 className, xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24",
                 fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"
             }, [
-                e('path', { key: 1, d: "M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" }),
-                e('polyline', { key: 2, points: "16,6 12,2 8,6" }),
-                e('line', { key: 3, x1: "12", x2: "12", y1: "2", y2: "15" })
-            ]);
-
-            const Bookmark = ({ className }) => e('svg', {
-                className, xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24",
-                fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"
-            }, [
-                e('path', { key: 1, d: "m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" })
+                e('rect', { key: 1, width: "16", height: "20", x: "4", y: "2", rx: "2", ry: "2" }),
+                e('path', { key: 2, d: "M9 22v-4h6v4" }),
+                e('path', { key: 3, d: "M8 6h.01" }),
+                e('path', { key: 4, d: "M16 6h.01" }),
+                e('path', { key: 5, d: "M12 6h.01" }),
+                e('path', { key: 6, d: "M12 10h.01" }),
+                e('path', { key: 7, d: "M12 14h.01" }),
+                e('path', { key: 8, d: "M16 10h.01" }),
+                e('path', { key: 9, d: "M16 14h.01" }),
+                e('path', { key: 10, d: "M8 10h.01" }),
+                e('path', { key: 11, d: "M8 14h.01" })
             ]);
 
             // Helper functions
@@ -1476,7 +1478,7 @@
                                         e('h2', { className: 'text-lg font-semibold' }, 'Filters')
                                     ]),
                                     e('div', { key: 'filter-content', className: 'space-y-4' }, [
-                                        e('div', { className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4' }, [
+                                        e('div', { className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4' }, [
                                             e('div', { key: 'env-filter' }, [
                                                 e('label', { className: 'block text-sm font-medium mb-2' }, 'Environment'),
                                                 e(MultiSelectDropdown, {
@@ -1520,7 +1522,10 @@
                                             ]),
 
                                             e('div', { key: 'gebruiker-filter' }, [
-                                                e('label', { className: 'block text-sm font-medium mb-2' }, 'Gebruiker'),
+                                                e('label', { className: 'block text-sm font-medium mb-2 flex items-center gap-2' }, [
+                                                    e(Users, { key: 'icon', className: 'w-4 h-4' }),
+                                                    'Gebruikers'
+                                                ]),
                                                 e('div', { className: 'space-y-2' }, [
                                                     e(MultiSelectDropdown, {
                                                         key: 'dropdown',
@@ -1537,7 +1542,32 @@
                                                     e('div', { 
                                                         key: 'info',
                                                         className: 'text-xs p-2 bg-blue-50 border border-blue-200 rounded text-blue-700'
-                                                    }, `${getFilteredGebruikers().length} gebruikers beschikbaar`)
+                                                    }, `${getFilteredGebruikers().length} gebruikers`)
+                                                ])
+                                            ]),
+
+                                            e('div', { key: 'leverancier-filter' }, [
+                                                e('label', { className: 'block text-sm font-medium mb-2 flex items-center gap-2' }, [
+                                                    e(Building, { key: 'icon', className: 'w-4 h-4' }),
+                                                    'Leveranciers'
+                                                ]),
+                                                e('div', { className: 'space-y-2' }, [
+                                                    e(MultiSelectDropdown, {
+                                                        key: 'dropdown',
+                                                        options: getFilteredLeveranciers(),
+                                                        selectedValues: filters.leverancier,
+                                                        onToggle: (value) => handleMultiSelectFilter('leverancier', value),
+                                                        placeholder: 'Selecteer leveranciers...',
+                                                        darkMode: darkMode,
+                                                        searchTerm: searchTerms.leverancier,
+                                                        onSearchChange: (term) => setSearchTerms(prev => ({ ...prev, leverancier: term })),
+                                                        showSearch: true,
+                                                        maxHeight: '300px'
+                                                    }),
+                                                    e('div', { 
+                                                        key: 'info',
+                                                        className: 'text-xs p-2 bg-orange-50 border border-orange-200 rounded text-orange-700'
+                                                    }, `${getFilteredLeveranciers().length} leveranciers`)
                                                 ])
                                             ]),
 
@@ -1741,7 +1771,7 @@
                                         e('span', { key: 'sep1' }, '•'),
                                         e('span', { key: 'records' }, `${filteredData.length.toLocaleString()} van ${data.length.toLocaleString()} records`),
                                         e('span', { key: 'sep2' }, '•'),
-                                        e('span', { key: 'version' }, 'v3.0 - Vereenvoudigd')
+                                        e('span', { key: 'version' }, 'v3.1 - Met Leverancier Filter')
                                     ])
                                 ])
                             )
