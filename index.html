@@ -1012,7 +1012,7 @@
                 };
 
                 const generateCSVExport = () => {
-                    const csvHeaders = ['Environment', 'YyyyMm', 'Insurer', 'Product', 'Gebruiker_Genormaliseerd', 'Gebruiker_Origineel', 'Bron', 'Aantal'];
+                    const csvHeaders = ['Environment', 'YyyyMm', 'Insurer', 'Product', 'Gebruiker_Genormaliseerd', 'Gebruiker_Origineel', 'Bron', 'IsLeverancier', 'Aantal'];
                     const csvRows = filteredData.map(row => [
                         row.Environment,
                         row.YyyyMm ? row.YyyyMm.toISOString().split('T')[0] : '',
@@ -1021,6 +1021,7 @@
                         row.normalizedUser,
                         row.actualUser,
                         row.userSource,
+                        row.isLeverancier ? 'Ja' : 'Nee',
                         row.Aantal
                     ]);
                     
@@ -1032,11 +1033,11 @@
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.href = url;
-                    link.download = `IPC_Data_Normalized_${new Date().toISOString().split('T')[0]}.csv`;
+                    link.download = `IPC_Data_Cascading_${new Date().toISOString().split('T')[0]}.csv`;
                     link.click();
                     URL.revokeObjectURL(url);
                     
-                    addNotification('success', 'CSV bestand met genormaliseerde gebruikers gedownload');
+                    addNotification('success', 'CSV bestand met cascading filters gedownload');
                 };
 
                 if (!isOpen) {
@@ -1179,7 +1180,8 @@
                     environment: '',
                     insurer: '',
                     product: '',
-                    leverancier: ''
+                    leverancier: '',
+                    veUser: ''
                 });
                 const [filters, setFilters] = useState({
                     environment: [],
@@ -1187,6 +1189,7 @@
                     product: [],
                     user: [],
                     leverancier: [],
+                    veUser: [],
                     selectedYear: 'all',
                     selectedMonth: 'all'
                 });
@@ -1425,6 +1428,30 @@
                     return users;
                 };
 
+                // Get VE users linked to selected leveranciers
+                const getLinkedVEUsers = () => {
+                    if (filters.leverancier.length === 0) {
+                        return [];
+                    }
+                    
+                    // Get the normalized names of selected leveranciers (without (REG)/(VE) suffix)
+                    const selectedLeverancierNames = filters.leverancier.map(leverancier => 
+                        leverancier.replace(/\s+\((REG|VE)\)$/, '')
+                    );
+                    
+                    // Find all VE users that are linked to these leveranciers
+                    const linkedVEUsers = data.filter(d => {
+                        // Check if this is a VE user
+                        if (d.userSource !== 'GebruikerVe') return false;
+                        
+                        // Check if the normalized name matches any selected leverancier
+                        const normalizedName = d.normalizedUser;
+                        return selectedLeverancierNames.includes(normalizedName);
+                    });
+                    
+                    return _.uniq(linkedVEUsers.map(d => d.userDisplayName)).filter(Boolean).sort();
+                };
+
                 // Notification system
                 const addNotification = (type, message) => {
                     const id = Date.now();
@@ -1452,6 +1479,9 @@
                     }
                     if (filters.leverancier.length > 0) {
                         filtered = filtered.filter(d => filters.leverancier.includes(d.userDisplayName));
+                    }
+                    if (filters.veUser.length > 0) {
+                        filtered = filtered.filter(d => filters.veUser.includes(d.userDisplayName));
                     }
 
                     if (filters.selectedYear !== 'all') {
@@ -1580,6 +1610,11 @@
                         if (type === 'insurer') {
                             newFilters.product = [];
                             // Don't clear users or leveranciers when changing insurer
+                        }
+                        
+                        // Clear VE users when leverancier selection changes
+                        if (type === 'leverancier') {
+                            newFilters.veUser = [];
                         }
                         
                         return newFilters;
@@ -1790,7 +1825,7 @@
                                         e('h2', { className: 'text-lg font-semibold' }, 'Geavanceerde Filters')
                                     ]),
                                     e('div', { key: 'filter-content', className: 'space-y-4' }, [
-                                        e('div', { className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4' }, [
+                                        e('div', { className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4' }, [
                                             e('div', { key: 'env-filter' }, [
                                                 e('label', { className: 'block text-sm font-medium mb-2' }, 'Environment'),
                                                 e(MultiSelectDropdown, {
@@ -1871,6 +1906,28 @@
                                                     showSearch: true,
                                                     maxHeight: '250px'
                                                 })
+                                            ]),
+
+                                            e('div', { key: 've-user-filter' }, [
+                                                e('label', { className: 'block text-sm font-medium mb-2 flex items-center gap-2' }, [
+                                                    e(Users, { className: 'w-4 h-4' }),
+                                                    'VE Gebruiker'
+                                                ]),
+                                                filters.leverancier.length === 0 ? 
+                                                    e('div', { className: `px-3 py-2 text-sm text-gray-500 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-100 border-gray-300'}` },
+                                                        'Selecteer eerst leverancier'
+                                                    ) :
+                                                    e(MultiSelectDropdown, {
+                                                        options: getLinkedVEUsers(),
+                                                        selectedValues: filters.veUser,
+                                                        onToggle: (value) => handleMultiSelectFilter('veUser', value),
+                                                        placeholder: 'Selecteer VE gebruikers...',
+                                                        darkMode: darkMode,
+                                                        searchTerm: searchTerms.veUser,
+                                                        onSearchChange: (term) => setSearchTerms(prev => ({ ...prev, veUser: term })),
+                                                        showSearch: true,
+                                                        maxHeight: '250px'
+                                                    })
                                             ]),
 
                                             e('div', { key: 'date-filters', className: 'space-y-3' }, [
