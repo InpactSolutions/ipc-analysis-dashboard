@@ -1151,8 +1151,27 @@
                     }
                     
                     if (filters.gebruiker.length > 0) {
-                        // When regular users are selected, don't show leveranciers as they're mutually exclusive
-                        return [];
+                        // When regular users/VE users are selected, show related leveranciers
+                        const selectedUserNames = filters.gebruiker.map(name => name.replace(' (Reg)', '').replace(' (VE)', ''));
+                        
+                        // Find leveranciers that are associated with these VE users
+                        const relatedLeveranciers = data.filter(d => {
+                            if (!d.originalVeUser || d.originalVeUser === '(geen VE_MYAAND)' || d.originalVeUser.trim() === '' || d.originalVeUser === 'NULL') {
+                                return false;
+                            }
+                            
+                            const veUserNormalized = normalizeUserName(d.originalVeUser);
+                            return selectedUserNames.some(user => 
+                                user.includes(veUserNormalized) || veUserNormalized.includes(user)
+                            );
+                        });
+                        
+                        // Get the leveranciers (reg users) from these records
+                        const leverancierUsers = relatedLeveranciers
+                            .filter(d => d.originalRegUser && isLeverancier(normalizeUserName(d.originalRegUser)))
+                            .map(d => `${normalizeUserName(d.originalRegUser)} (Reg)`);
+                        
+                        return _.uniq(leverancierUsers).filter(Boolean).sort();
                     }
                     
                     if (filters.selectedYear !== 'all') {
@@ -1193,11 +1212,37 @@
                     if (filters.product.length > 0) {
                         filtered = filtered.filter(d => filters.product.includes(d.Product));
                     }
-                    if (filters.gebruiker.length > 0) {
-                        filtered = filtered.filter(d => filters.gebruiker.includes(d.userDisplayName));
-                    }
-                    if (filters.leverancier.length > 0) {
-                        filtered = filtered.filter(d => filters.leverancier.includes(d.userDisplayName));
+                    
+                    // Handle user and leverancier filters - they work together, not exclusively
+                    if (filters.gebruiker.length > 0 || filters.leverancier.length > 0) {
+                        filtered = filtered.filter(d => {
+                            let matchesUser = false;
+                            let matchesLeverancier = false;
+                            
+                            if (filters.gebruiker.length > 0) {
+                                matchesUser = filters.gebruiker.includes(d.userDisplayName);
+                            }
+                            
+                            if (filters.leverancier.length > 0) {
+                                matchesLeverancier = filters.leverancier.includes(d.userDisplayName);
+                            }
+                            
+                            // If both filters are active, show records that match either
+                            if (filters.gebruiker.length > 0 && filters.leverancier.length > 0) {
+                                return matchesUser || matchesLeverancier;
+                            }
+                            
+                            // If only one filter is active, show records that match that filter
+                            if (filters.gebruiker.length > 0) {
+                                return matchesUser;
+                            }
+                            
+                            if (filters.leverancier.length > 0) {
+                                return matchesLeverancier;
+                            }
+                            
+                            return false;
+                        });
                     }
 
                     if (filters.selectedYear !== 'all') {
@@ -1557,7 +1602,7 @@
                                             e('div', { key: 'gebruiker-filter' }, [
                                                 e('label', { className: 'block text-sm font-medium mb-2 flex items-center gap-2' }, [
                                                     e(Users, { key: 'icon', className: 'w-4 h-4' }),
-                                                    'Gebruikers'
+                                                    filters.leverancier.length > 0 ? 'VE Gebruikers' : 'Gebruikers'
                                                 ]),
                                                 e('div', { className: 'space-y-2' }, [
                                                     e(MultiSelectDropdown, {
@@ -1565,7 +1610,7 @@
                                                         options: getFilteredGebruikers(),
                                                         selectedValues: filters.gebruiker,
                                                         onToggle: (value) => handleMultiSelectFilter('gebruiker', value),
-                                                        placeholder: 'Selecteer gebruikers...',
+                                                        placeholder: filters.leverancier.length > 0 ? 'Selecteer VE gebruikers...' : 'Selecteer gebruikers...',
                                                         darkMode: darkMode,
                                                         searchTerm: searchTerms.gebruiker,
                                                         onSearchChange: (term) => setSearchTerms(prev => ({ ...prev, gebruiker: term })),
@@ -1574,8 +1619,12 @@
                                                     }),
                                                     e('div', { 
                                                         key: 'info',
-                                                        className: 'text-xs p-2 bg-blue-50 border border-blue-200 rounded text-blue-700'
-                                                    }, `${getFilteredGebruikers().length} gebruikers`)
+                                                        className: `text-xs p-2 rounded ${
+                                                            filters.leverancier.length > 0 
+                                                                ? 'bg-orange-50 border border-orange-200 text-orange-700' 
+                                                                : 'bg-blue-50 border border-blue-200 text-blue-700'
+                                                        }`
+                                                    }, `${getFilteredGebruikers().length} ${filters.leverancier.length > 0 ? 'VE gebruikers' : 'gebruikers'}`)
                                                 ])
                                             ]),
 
