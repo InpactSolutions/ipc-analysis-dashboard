@@ -415,42 +415,18 @@
 
     <script>
         function initApp() {
-            if (typeof React === 'undefined') {
-                console.error('React not loaded, retrying...');
-                setTimeout(initApp, 100);
-                return;
-            }
-            
-            if (typeof ReactDOM === 'undefined') {
-                console.error('ReactDOM not loaded, retrying...');
-                setTimeout(initApp, 100);
-                return;
-            }
-            
-            if (typeof XLSX === 'undefined') {
-                console.error('XLSX not loaded, retrying...');
-                setTimeout(initApp, 100);
-                return;
-            }
-            
-            if (typeof _ === 'undefined') {
-                console.error('Lodash not loaded, retrying...');
+            if (typeof React === 'undefined' || typeof ReactDOM === 'undefined' || typeof XLSX === 'undefined' || typeof _ === 'undefined') {
                 setTimeout(initApp, 100);
                 return;
             }
 
-            console.log('All libraries loaded successfully');
-            
             const { useState, useEffect, useMemo, useCallback, useRef, createElement: e } = React;
             const { render } = ReactDOM;
 
             // Icon Components
             const Upload = ({ className }) => e('svg', {
-                className,
-                xmlns: "http://www.w3.org/2000/svg",
-                width: "24", height: "24", viewBox: "0 0 24 24",
-                fill: "none", stroke: "currentColor", strokeWidth: "2",
-                strokeLinecap: "round", strokeLinejoin: "round"
+                className, xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24",
+                fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"
             }, [
                 e('path', { key: 1, d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }),
                 e('polyline', { key: 2, points: "17,8 12,3 7,8" }),
@@ -458,11 +434,8 @@
             ]);
 
             const RefreshCw = ({ className }) => e('svg', {
-                className,
-                xmlns: "http://www.w3.org/2000/svg",
-                width: "24", height: "24", viewBox: "0 0 24 24",
-                fill: "none", stroke: "currentColor", strokeWidth: "2",
-                strokeLinecap: "round", strokeLinejoin: "round"
+                className, xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24",
+                fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"
             }, [
                 e('path', { key: 1, d: "M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" }),
                 e('path', { key: 2, d: "M21 3v5h-5" }),
@@ -471,56 +444,32 @@
             ]);
 
             const AlertTriangle = ({ className }) => e('svg', {
-                className,
-                xmlns: "http://www.w3.org/2000/svg",
-                width: "24", height: "24", viewBox: "0 0 24 24",
-                fill: "none", stroke: "currentColor", strokeWidth: "2",
-                strokeLinecap: "round", strokeLinejoin: "round"
+                className, xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24",
+                fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"
             }, [
                 e('path', { key: 1, d: "m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" }),
                 e('path', { key: 2, d: "M12 9v4" }),
                 e('path', { key: 3, d: "m12 17 .01 0" })
             ]);
 
-            const Download = ({ className }) => e('svg', {
-                className,
-                xmlns: "http://www.w3.org/2000/svg",
-                width: "24", height: "24", viewBox: "0 0 24 24",
-                fill: "none", stroke: "currentColor", strokeWidth: "2",
-                strokeLinecap: "round", strokeLinejoin: "round"
-            }, [
-                e('path', { key: 1, d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }),
-                e('polyline', { key: 2, points: "7,10 12,15 17,10" }),
-                e('line', { key: 3, x1: "12", x2: "12", y1: "15", y2: "3" })
-            ]);
-
             const Filter = ({ className }) => e('svg', {
-                className,
-                xmlns: "http://www.w3.org/2000/svg",
-                width: "24", height: "24", viewBox: "0 0 24 24",
-                fill: "none", stroke: "currentColor", strokeWidth: "2",
-                strokeLinecap: "round", strokeLinejoin: "round"
+                className, xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24",
+                fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"
             }, [
                 e('polygon', { key: 1, points: "22,3 2,3 10,12.46 10,19 14,21 14,12.46" })
             ]);
 
             const TrendingUp = ({ className }) => e('svg', {
-                className,
-                xmlns: "http://www.w3.org/2000/svg",
-                width: "24", height: "24", viewBox: "0 0 24 24",
-                fill: "none", stroke: "currentColor", strokeWidth: "2",
-                strokeLinecap: "round", strokeLinejoin: "round"
+                className, xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24",
+                fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"
             }, [
                 e('polyline', { key: 1, points: "22,7 13.5,15.5 8.5,10.5 2,17" }),
                 e('polyline', { key: 2, points: "16,7 22,7 22,13" })
             ]);
 
             const Users = ({ className }) => e('svg', {
-                className,
-                xmlns: "http://www.w3.org/2000/svg",
-                width: "24", height: "24", viewBox: "0 0 24 24",
-                fill: "none", stroke: "currentColor", strokeWidth: "2",
-                strokeLinecap: "round", strokeLinejoin: "round"
+                className, xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24",
+                fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"
             }, [
                 e('path', { key: 1, d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" }),
                 e('circle', { key: 2, cx: "9", cy: "7", r: "4" }),
@@ -528,11 +477,8 @@
             ]);
 
             const Package = ({ className }) => e('svg', {
-                className,
-                xmlns: "http://www.w3.org/2000/svg",
-                width: "24", height: "24", viewBox: "0 0 24 24",
-                fill: "none", stroke: "currentColor", strokeWidth: "2",
-                strokeLinecap: "round", strokeLinejoin: "round"
+                className, xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24",
+                fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"
             }, [
                 e('path', { key: 1, d: "m7.5 4.27 9 5.15" }),
                 e('path', { key: 2, d: "M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" }),
@@ -541,11 +487,8 @@
             ]);
 
             const Database = ({ className }) => e('svg', {
-                className,
-                xmlns: "http://www.w3.org/2000/svg",
-                width: "24", height: "24", viewBox: "0 0 24 24",
-                fill: "none", stroke: "currentColor", strokeWidth: "2",
-                strokeLinecap: "round", strokeLinejoin: "round"
+                className, xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24",
+                fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"
             }, [
                 e('ellipse', { key: 1, cx: "12", cy: "5", rx: "9", ry: "3" }),
                 e('path', { key: 2, d: "M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5" }),
@@ -553,11 +496,8 @@
             ]);
 
             const Calendar = ({ className }) => e('svg', {
-                className,
-                xmlns: "http://www.w3.org/2000/svg",
-                width: "24", height: "24", viewBox: "0 0 24 24",
-                fill: "none", stroke: "currentColor", strokeWidth: "2",
-                strokeLinecap: "round", strokeLinejoin: "round"
+                className, xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24",
+                fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"
             }, [
                 e('path', { key: 1, d: "M8 2v4" }),
                 e('path', { key: 2, d: "M16 2v4" }),
@@ -566,22 +506,16 @@
             ]);
 
             const Eye = ({ className }) => e('svg', {
-                className,
-                xmlns: "http://www.w3.org/2000/svg",
-                width: "24", height: "24", viewBox: "0 0 24 24",
-                fill: "none", stroke: "currentColor", strokeWidth: "2",
-                strokeLinecap: "round", strokeLinejoin: "round"
+                className, xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24",
+                fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"
             }, [
                 e('path', { key: 1, d: "M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" }),
                 e('circle', { key: 2, cx: "12", cy: "12", r: "3" })
             ]);
 
             const Sun = ({ className }) => e('svg', {
-                className,
-                xmlns: "http://www.w3.org/2000/svg",
-                width: "24", height: "24", viewBox: "0 0 24 24",
-                fill: "none", stroke: "currentColor", strokeWidth: "2",
-                strokeLinecap: "round", strokeLinejoin: "round"
+                className, xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24",
+                fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"
             }, [
                 e('circle', { key: 1, cx: "12", cy: "12", r: "4" }),
                 e('path', { key: 2, d: "M12 2v2" }),
@@ -595,55 +529,29 @@
             ]);
 
             const Moon = ({ className }) => e('svg', {
-                className,
-                xmlns: "http://www.w3.org/2000/svg",
-                width: "24", height: "24", viewBox: "0 0 24 24",
-                fill: "none", stroke: "currentColor", strokeWidth: "2",
-                strokeLinecap: "round", strokeLinejoin: "round"
+                className, xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24",
+                fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"
             }, [
                 e('path', { key: 1, d: "M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" })
             ]);
 
             const ChevronDown = ({ className }) => e('svg', {
-                className,
-                xmlns: "http://www.w3.org/2000/svg",
-                width: "24", height: "24", viewBox: "0 0 24 24",
-                fill: "none", stroke: "currentColor", strokeWidth: "2",
-                strokeLinecap: "round", strokeLinejoin: "round"
+                className, xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24",
+                fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"
             }, [
                 e('path', { key: 1, d: "m6 9 6 6 6-6" })
             ]);
 
             const Check = ({ className }) => e('svg', {
-                className,
-                xmlns: "http://www.w3.org/2000/svg",
-                width: "24", height: "24", viewBox: "0 0 24 24",
-                fill: "none", stroke: "currentColor", strokeWidth: "2",
-                strokeLinecap: "round", strokeLinejoin: "round"
+                className, xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24",
+                fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"
             }, [
                 e('path', { key: 1, d: "M20 6 9 17l-5-5" })
             ]);
 
-            const FileText = ({ className }) => e('svg', {
-                className,
-                xmlns: "http://www.w3.org/2000/svg",
-                width: "24", height: "24", viewBox: "0 0 24 24",
-                fill: "none", stroke: "currentColor", strokeWidth: "2",
-                strokeLinecap: "round", strokeLinejoin: "round"
-            }, [
-                e('path', { key: 1, d: "M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" }),
-                e('path', { key: 2, d: "M14,2 14,8 20,8" }),
-                e('path', { key: 3, d: "M10,9 9,9 8,9" }),
-                e('path', { key: 4, d: "M16,13 8,13" }),
-                e('path', { key: 5, d: "M16,17 8,17" })
-            ]);
-
             const Share = ({ className }) => e('svg', {
-                className,
-                xmlns: "http://www.w3.org/2000/svg",
-                width: "24", height: "24", viewBox: "0 0 24 24",
-                fill: "none", stroke: "currentColor", strokeWidth: "2",
-                strokeLinecap: "round", strokeLinejoin: "round"
+                className, xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24",
+                fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"
             }, [
                 e('path', { key: 1, d: "M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" }),
                 e('polyline', { key: 2, points: "16,6 12,2 8,6" }),
@@ -651,50 +559,71 @@
             ]);
 
             const Bookmark = ({ className }) => e('svg', {
-                className,
-                xmlns: "http://www.w3.org/2000/svg",
-                width: "24", height: "24", viewBox: "0 0 24 24",
-                fill: "none", stroke: "currentColor", strokeWidth: "2",
-                strokeLinecap: "round", strokeLinejoin: "round"
+                className, xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24",
+                fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"
             }, [
                 e('path', { key: 1, d: "m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" })
             ]);
 
-            const User = ({ className }) => e('svg', {
-                className,
-                xmlns: "http://www.w3.org/2000/svg",
-                width: "24", height: "24", viewBox: "0 0 24 24",
-                fill: "none", stroke: "currentColor", strokeWidth: "2",
-                strokeLinecap: "round", strokeLinejoin: "round"
-            }, [
-                e('path', { key: 1, d: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" }),
-                e('circle', { key: 2, cx: "12", cy: "7", r: "4" })
-            ]);
+            // Helper functions
+            const normalizeUserName = (userName) => {
+                if (!userName || userName === 'NULL') return 'Unknown';
+                
+                let normalized = userName.toString().trim();
+                
+                const companyMappings = {
+                    'AWI B.V.': /^AWI B\.V\.(\s+\d+)?$/i,
+                    'CCS Testbedrijf 1': /^CCS Testbedrijf 1(\s+\d+)?$/i,
+                    'Comparity B.V.': /^Comparity B\.V\.(\s+\d+)?$/i,
+                    'DIAS Software B.V.': /^DIAS Software B\.V\.(\s+\d+)?$/i,
+                    'Fish testbedrijf1': /^Fish testbedrijf\d*(\s+\d+)?$/i,
+                    'My TP B.V.': /^My TP B\.V\.(\s+\d+)?$/i,
+                    'SECTOR ORANGE B.V.': /^SECTOR ORANGE B\.V\.(\s+\d+)?$/i,
+                    'Volmachtbeheer B.V.': /^Volmachtbeheer B\.V\.(\s+\d+)?$/i
+                };
+                
+                for (const [cleanName, pattern] of Object.entries(companyMappings)) {
+                    if (pattern.test(normalized)) {
+                        return cleanName;
+                    }
+                }
+                
+                normalized = normalized.replace(/\s+\d+$/, '').replace(/\s+$/, '');
+                return normalized;
+            };
 
-            const Image = ({ className }) => e('svg', {
-                className,
-                xmlns: "http://www.w3.org/2000/svg",
-                width: "24", height: "24", viewBox: "0 0 24 24",
-                fill: "none", stroke: "currentColor", strokeWidth: "2",
-                strokeLinecap: "round", strokeLinejoin: "round"
-            }, [
-                e('rect', { key: 1, width: "18", height: "18", x: "3", y: "3", rx: "2", ry: "2" }),
-                e('circle', { key: 2, cx: "9", cy: "9", r: "2" }),
-                e('path', { key: 3, d: "m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" })
-            ]);
+            const isLeverancier = (normalizedUserName) => {
+                const leveranciers = [
+                    'AWI B.V.', 'CCS Testbedrijf 1', 'Comparity B.V.', 'DIAS Software B.V.',
+                    'Fish testbedrijf1', 'My TP B.V.', 'SECTOR ORANGE B.V.', 'Volmachtbeheer B.V.'
+                ];
+                return leveranciers.includes(normalizedUserName);
+            };
+
+            const categorizeUser = (user, aantal) => {
+                if (!user || user === 'NULL') return 'Unknown';
+                if (aantal > 10000) return 'Enterprise';
+                if (aantal > 1000) return 'Large';
+                if (aantal > 100) return 'Medium';
+                return 'Small';
+            };
+
+            const categorizeProduct = (product) => {
+                if (!product) return 'Unknown';
+                if (product.toLowerCase().includes('auto')) return 'Auto';
+                if (product.toLowerCase().includes('woning')) return 'Property';
+                if (product.toLowerCase().includes('aansprakelijk')) return 'Liability';
+                return 'Other';
+            };
+
+            const calculateCompleteness = (row) => {
+                const fields = ['Environment', 'YyyyMm', 'Engine', 'Insurer', 'Product', 'Gebruiker', 'Aantal'];
+                const validFields = fields.filter(field => row[field] && row[field] !== 'NULL' && row[field] !== null);
+                return (validFields.length / fields.length) * 100;
+            };
 
             // MultiSelect Dropdown Component
-            const MultiSelectDropdown = ({ 
-                options, 
-                selectedValues, 
-                onToggle, 
-                placeholder,
-                darkMode,
-                searchTerm,
-                onSearchChange,
-                maxHeight = '200px',
-                showSearch = true
-            }) => {
+            const MultiSelectDropdown = ({ options, selectedValues, onToggle, placeholder, darkMode, searchTerm, onSearchChange, maxHeight = '200px', showSearch = true }) => {
                 const [isOpen, setIsOpen] = useState(false);
                 const dropdownRef = useRef(null);
 
@@ -704,7 +633,6 @@
                             setIsOpen(false);
                         }
                     };
-
                     document.addEventListener('mousedown', handleClickOutside);
                     return () => document.removeEventListener('mousedown', handleClickOutside);
                 }, []);
@@ -849,7 +777,6 @@
                     const ctx = canvas.getContext('2d');
                     const rect = canvas.getBoundingClientRect();
                     
-                    // Set canvas size
                     canvas.width = rect.width * 2;
                     canvas.height = (height - 100) * 2;
                     ctx.scale(2, 2);
@@ -860,15 +787,12 @@
                     const chartWidth = width - (padding * 2);
                     const chartAreaHeight = chartHeight - (padding * 2);
                     
-                    // Calculate data ranges
                     const maxValue = Math.max(...data.map(d => d[dataKey]));
                     const minValue = Math.min(...data.map(d => d[dataKey]));
                     const range = maxValue - minValue;
                     
-                    // Clear canvas
                     ctx.clearRect(0, 0, width, chartHeight);
                     
-                    // Draw grid
                     ctx.strokeStyle = '#f0f0f0';
                     ctx.lineWidth = 1;
                     for (let i = 0; i <= 5; i++) {
@@ -879,14 +803,12 @@
                         ctx.stroke();
                     }
                     
-                    // Calculate points
                     const points = data.map((item, index) => {
                         const x = padding + (index / (data.length - 1)) * chartWidth;
                         const y = padding + chartAreaHeight - ((item[dataKey] - minValue) / range) * chartAreaHeight;
                         return { x, y, value: item[dataKey], label: item[nameKey] };
                     });
                     
-                    // Draw area under line
                     ctx.fillStyle = color + '20';
                     ctx.beginPath();
                     ctx.moveTo(points[0].x, chartHeight - padding);
@@ -895,7 +817,6 @@
                     ctx.closePath();
                     ctx.fill();
                     
-                    // Draw line
                     ctx.strokeStyle = color;
                     ctx.lineWidth = 3;
                     ctx.beginPath();
@@ -903,7 +824,6 @@
                     points.forEach(point => ctx.lineTo(point.x, point.y));
                     ctx.stroke();
                     
-                    // Draw points
                     points.forEach((point, index) => {
                         ctx.fillStyle = color;
                         ctx.beginPath();
@@ -916,7 +836,6 @@
                         ctx.fill();
                     });
                     
-                    // Draw Y-axis labels
                     ctx.fillStyle = '#666';
                     ctx.font = '12px Arial';
                     ctx.textAlign = 'right';
@@ -945,225 +864,6 @@
                                 }, item[nameKey])
                             )
                         )
-                    ])
-                ]);
-            };
-
-            // Advanced Export & Reporting Component
-            const ExportReportingPanel = ({ data, filteredData, stats, darkMode, filters, onLoadView, addNotification }) => {
-                const [isOpen, setIsOpen] = useState(false);
-                const [selectedExportType, setSelectedExportType] = useState('excel');
-                const [savedViews, setSavedViews] = useState([]);
-                const [viewName, setViewName] = useState('');
-                
-                useEffect(() => {
-                    try {
-                        const stored = JSON.parse(sessionStorage.getItem('ipc-saved-views') || '[]');
-                        setSavedViews(stored);
-                    } catch (error) {
-                        console.log('No saved views found');
-                        setSavedViews([]);
-                    }
-                }, []);
-
-                useEffect(() => {
-                    try {
-                        sessionStorage.setItem('ipc-saved-views', JSON.stringify(savedViews));
-                    } catch (error) {
-                        console.error('Could not save views');
-                    }
-                }, [savedViews]);
-                
-                const exportTypes = [
-                    { id: 'excel', label: 'Excel Spreadsheet', icon: Database, description: 'Volledige data export' },
-                    { id: 'csv', label: 'CSV Data', icon: Download, description: 'Comma-separated values' }
-                ];
-
-                const saveCurrentView = () => {
-                    if (!viewName.trim()) {
-                        addNotification('error', 'Voer een naam in voor deze view');
-                        return;
-                    }
-                    
-                    if (savedViews.some(view => view.name === viewName.trim())) {
-                        addNotification('error', 'Deze naam bestaat al. Kies een andere naam.');
-                        return;
-                    }
-                    
-                    const newView = {
-                        id: Date.now(),
-                        name: viewName.trim(),
-                        filters: { ...filters },
-                        created: new Date().toLocaleDateString('nl-NL'),
-                        recordCount: filteredData.length
-                    };
-                    
-                    setSavedViews(prev => [...prev, newView]);
-                    setViewName('');
-                    addNotification('success', `View "${newView.name}" opgeslagen`);
-                };
-
-                const loadSavedView = (view) => {
-                    if (onLoadView) {
-                        onLoadView(view.filters);
-                        addNotification('success', `View "${view.name}" geladen`);
-                        setIsOpen(false);
-                    }
-                };
-
-                const generateCSVExport = () => {
-                    const csvHeaders = ['Environment', 'YyyyMm', 'Insurer', 'Product', 'FinalUser', 'OriginalRegUser', 'OriginalVeUser', 'UserSource', 'IsLeverancier', 'ProcessingRule', 'Aantal'];
-                    const csvRows = filteredData.map(row => [
-                        row.Environment,
-                        row.YyyyMm ? row.YyyyMm.toISOString().split('T')[0] : '',
-                        row.Insurer,
-                        row.Product,
-                        row.normalizedUser,
-                        row.originalRegUser,
-                        row.originalVeUser || '',
-                        row.userSource,
-                        row.isLeverancier ? 'Ja' : 'Nee',
-                        row.processingRule,
-                        row.Aantal
-                    ]);
-                    
-                    const csvContent = [csvHeaders, ...csvRows]
-                        .map(row => row.map(cell => `"${cell}"`).join(','))
-                        .join('\n');
-                    
-                    const blob = new Blob([csvContent], { type: 'text/csv' });
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `IPC_Data_Corrected_Logic_${new Date().toISOString().split('T')[0]}.csv`;
-                    link.click();
-                    URL.revokeObjectURL(url);
-                    
-                    addNotification('success', 'CSV bestand met gecorrigeerde logica gedownload');
-                };
-
-                if (!isOpen) {
-                    return e('button', {
-                        onClick: () => setIsOpen(true),
-                        className: `flex items-center gap-2 px-4 py-2 rounded-lg ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-green-600 hover:bg-green-700'} text-white transition-colors`
-                    }, [
-                        e(Share, { key: 'icon', className: 'w-4 h-4' }),
-                        e('span', { key: 'text' }, 'Export & Rapportage')
-                    ]);
-                }
-
-                return e('div', { className: 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4' }, [
-                    e('div', { 
-                        key: 'modal',
-                        className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto`
-                    }, [
-                        e('div', { key: 'header', className: 'flex items-center justify-between p-6 border-b' }, [
-                            e('h2', { key: 'title', className: 'text-2xl font-bold flex items-center gap-3' }, [
-                                e(Share, { className: 'w-6 h-6 text-blue-600' }),
-                                'Export & Rapportage'
-                            ]),
-                            e('button', {
-                                key: 'close',
-                                onClick: () => setIsOpen(false),
-                                className: 'text-gray-500 hover:text-gray-700 text-2xl'
-                            }, '×')
-                        ]),
-
-                        e('div', { key: 'content', className: 'p-6 space-y-8' }, [
-                            e('div', { key: 'export-types' }, [
-                                e('h3', { className: 'text-lg font-semibold mb-4' }, 'Export Formaat'),
-                                e('div', { className: 'grid grid-cols-1 md:grid-cols-2 gap-4' },
-                                    exportTypes.map(type => 
-                                        e('div', {
-                                            key: type.id,
-                                            onClick: () => setSelectedExportType(type.id),
-                                            className: `p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                                                selectedExportType === type.id 
-                                                    ? 'border-blue-500 bg-blue-50' 
-                                                    : 'border-gray-200 hover:border-gray-300'
-                                            }`
-                                        }, [
-                                            e('div', { key: 'header', className: 'flex items-center gap-3 mb-2' }, [
-                                                e(type.icon, { className: 'w-5 h-5 text-blue-600' }),
-                                                e('span', { className: 'font-medium' }, type.label)
-                                            ]),
-                                            e('p', { key: 'desc', className: 'text-sm text-gray-600' }, type.description)
-                                        ])
-                                    )
-                                )
-                            ]),
-
-                            e('div', { key: 'save-view' }, [
-                                e('h3', { className: 'text-lg font-semibold mb-4 flex items-center gap-2' }, [
-                                    e(Bookmark, { className: 'w-5 h-5' }),
-                                    'Huidige View Opslaan'
-                                ]),
-                                e('div', { className: 'flex gap-3' }, [
-                                    e('input', {
-                                        type: 'text',
-                                        placeholder: 'Naam voor deze view...',
-                                        value: viewName,
-                                        onChange: (e) => setViewName(e.target.value),
-                                        className: `flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                            darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
-                                        }`
-                                    }),
-                                    e('button', {
-                                        onClick: saveCurrentView,
-                                        className: 'px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'
-                                    }, 'Opslaan')
-                                ])
-                            ]),
-
-                            savedViews.length > 0 && e('div', { key: 'saved-views' }, [
-                                e('h3', { className: 'text-lg font-semibold mb-4' }, 'Opgeslagen Views'),
-                                e('div', { className: 'space-y-2' },
-                                    savedViews.map(view =>
-                                        e('div', {
-                                            key: view.id,
-                                            className: 'flex items-center justify-between p-3 border rounded-lg'
-                                        }, [
-                                            e('div', { key: 'info' }, [
-                                                e('div', { className: 'font-medium' }, view.name),
-                                                e('div', { className: 'text-sm text-gray-600' }, 
-                                                    `${view.recordCount.toLocaleString()} records • ${view.created}`
-                                                )
-                                            ]),
-                                            e('button', {
-                                                key: 'load',
-                                                onClick: () => loadSavedView(view),
-                                                className: 'px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded transition-colors'
-                                            }, 'Laden')
-                                        ])
-                                    )
-                                )
-                            ])
-                        ]),
-
-                        e('div', { key: 'footer', className: 'flex items-center justify-between p-6 border-t bg-gray-50' }, [
-                            e('div', { key: 'spacer' }),
-                            e('div', { key: 'actions', className: 'flex gap-3' }, [
-                                e('button', {
-                                    onClick: () => setIsOpen(false),
-                                    className: 'px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors'
-                                }, 'Annuleren'),
-                                e('button', {
-                                    onClick: () => {
-                                        if (selectedExportType === 'excel') {
-                                            const wb = XLSX.utils.book_new();
-                                            const ws = XLSX.utils.json_to_sheet(filteredData);
-                                            XLSX.utils.book_append_sheet(wb, ws, 'IPC Data');
-                                            XLSX.writeFile(wb, `IPC_Analysis_${new Date().toISOString().split('T')[0]}.xlsx`);
-                                            addNotification('success', 'Excel bestand gedownload');
-                                        } else if (selectedExportType === 'csv') {
-                                            generateCSVExport();
-                                        }
-                                        setIsOpen(false);
-                                    },
-                                    className: 'px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'
-                                }, 'Exporteren')
-                            ])
-                        ])
                     ])
                 ]);
             };
@@ -1202,77 +902,6 @@
 
                 const fileInputRef = useRef(null);
 
-                // Helper functions
-                const normalizeUserName = (userName) => {
-                    if (!userName || userName === 'NULL') return 'Unknown';
-                    
-                    // Remove numbers and common suffixes from user names
-                    let normalized = userName.toString().trim();
-                    
-                    // Specific mappings for the requested companies
-                    const companyMappings = {
-                        'AWI B.V.': /^AWI B\.V\.(\s+\d+)?$/i,
-                        'CCS Testbedrijf 1': /^CCS Testbedrijf 1(\s+\d+)?$/i,
-                        'Comparity B.V.': /^Comparity B\.V\.(\s+\d+)?$/i,
-                        'DIAS Software B.V.': /^DIAS Software B\.V\.(\s+\d+)?$/i,
-                        'Fish testbedrijf1': /^Fish testbedrijf\d*(\s+\d+)?$/i,
-                        'My TP B.V.': /^My TP B\.V\.(\s+\d+)?$/i,
-                        'SECTOR ORANGE B.V.': /^SECTOR ORANGE B\.V\.(\s+\d+)?$/i,
-                        'Volmachtbeheer B.V.': /^Volmachtbeheer B\.V\.(\s+\d+)?$/i
-                    };
-                    
-                    // Check if the username matches any of our specific patterns
-                    for (const [cleanName, pattern] of Object.entries(companyMappings)) {
-                        if (pattern.test(normalized)) {
-                            return cleanName;
-                        }
-                    }
-                    
-                    // General cleanup: remove trailing numbers and common patterns
-                    normalized = normalized
-                        .replace(/\s+\d+$/, '') // Remove trailing numbers
-                        .replace(/\s+$/, ''); // Remove trailing spaces
-                    
-                    return normalized;
-                };
-
-                const isLeverancier = (normalizedUserName) => {
-                    const leveranciers = [
-                        'AWI B.V.',
-                        'CCS Testbedrijf 1',
-                        'Comparity B.V.',
-                        'DIAS Software B.V.',
-                        'Fish testbedrijf1',
-                        'My TP B.V.',
-                        'SECTOR ORANGE B.V.',
-                        'Volmachtbeheer B.V.'
-                    ];
-                    
-                    return leveranciers.includes(normalizedUserName);
-                };
-
-                const categorizeUser = (user, aantal) => {
-                    if (!user || user === 'NULL') return 'Unknown';
-                    if (aantal > 10000) return 'Enterprise';
-                    if (aantal > 1000) return 'Large';
-                    if (aantal > 100) return 'Medium';
-                    return 'Small';
-                };
-
-                const categorizeProduct = (product) => {
-                    if (!product) return 'Unknown';
-                    if (product.toLowerCase().includes('auto')) return 'Auto';
-                    if (product.toLowerCase().includes('woning')) return 'Property';
-                    if (product.toLowerCase().includes('aansprakelijk')) return 'Liability';
-                    return 'Other';
-                };
-
-                const calculateCompleteness = (row) => {
-                    const fields = ['Environment', 'YyyyMm', 'Engine', 'Insurer', 'Product', 'Gebruiker', 'Aantal'];
-                    const validFields = fields.filter(field => row[field] && row[field] !== 'NULL' && row[field] !== null);
-                    return (validFields.length / fields.length) * 100;
-                };
-
                 // File upload handler
                 const handleFileUpload = async (file) => {
                     if (!file) return;
@@ -1301,60 +930,46 @@
                             throw new Error('Data sheet is leeg');
                         }
 
-                        console.log('Raw data length:', rawData.length);
-
                         const processedData = rawData.map((row, index) => {
                             const date = row.YyyyMm ? new Date(row.YyyyMm) : null;
                             const monthNames = ['Jan', 'Feb', 'Mrt', 'Apr', 'Mei', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
                             
-                            // Smart user combination logic with correct leverancier handling
                             let actualUser = row.Gebruiker;
                             let userSource = 'Gebruiker';
                             let finalUser = actualUser;
                             let isLeverancierRow = false;
                             
-                            // Normalize both REG and VE users
                             const normalizedRegUser = normalizeUserName(actualUser);
                             const normalizedVeUser = row.GebruikerVe ? normalizeUserName(row.GebruikerVe) : null;
                             
-                            // Check if REG user is a leverancier
                             const regIsLeverancier = isLeverancier(normalizedRegUser);
                             
-                            // Logic for determining the final user and source
                             if (row.GebruikerVe && 
                                 row.GebruikerVe !== '(geen VE_MYAAND)' && 
                                 row.GebruikerVe.trim() !== '' && 
                                 row.GebruikerVe !== 'NULL') {
                                 
-                                // Case 1: REG and VE are the same (normalized) → count as 1 user, use original source
                                 if (normalizedRegUser === normalizedVeUser) {
-                                    finalUser = actualUser; // Use REG user
-                                    userSource = 'Gebruiker'; // Keep as REG
+                                    finalUser = actualUser;
+                                    userSource = 'Gebruiker';
                                     isLeverancierRow = regIsLeverancier;
-                                }
-                                // Case 2: REG is leverancier → requests count under VE user
-                                else if (regIsLeverancier) {
-                                    finalUser = row.GebruikerVe; // Use VE user
-                                    userSource = 'GebruikerVe'; // Mark as VE
-                                    isLeverancierRow = false; // This row counts as regular user, not leverancier
-                                }
-                                // Case 3: REG is not leverancier and different from VE → use VE
-                                else {
+                                } else if (regIsLeverancier) {
+                                    finalUser = row.GebruikerVe;
+                                    userSource = 'GebruikerVe';
+                                    isLeverancierRow = false;
+                                } else {
                                     finalUser = row.GebruikerVe;
                                     userSource = 'GebruikerVe';
                                     isLeverancierRow = false;
                                 }
                             } else {
-                                // No VE user, use REG user
                                 finalUser = actualUser;
                                 userSource = 'Gebruiker';
                                 isLeverancierRow = regIsLeverancier;
                             }
                             
-                            // Normalize the final user
                             const normalizedFinalUser = normalizeUserName(finalUser);
                             
-                            // Create display name
                             const userDisplayName = userSource === 'GebruikerVe' ? 
                                 `${normalizedFinalUser} (VE)` : 
                                 `${normalizedFinalUser} (Reg)`;
@@ -1367,19 +982,18 @@
                                 month: date ? `${monthNames[date.getMonth()]} ${date.getFullYear()}` : 'Onbekend',
                                 monthKey: date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}` : 'unknown',
                                 year: date ? date.getFullYear() : 'Onbekend',
-                                actualUser: finalUser, // The user this row counts under
-                                originalRegUser: row.Gebruiker, // Keep original for reference
-                                originalVeUser: row.GebruikerVe, // Keep original for reference
+                                actualUser: finalUser,
+                                originalRegUser: row.Gebruiker,
+                                originalVeUser: row.GebruikerVe,
                                 normalizedUser: normalizedFinalUser,
-                                isLeverancier: isLeverancierRow, // Whether this row counts as leverancier
-                                userSource: userSource, // Source of the final user
+                                isLeverancier: isLeverancierRow,
+                                userSource: userSource,
                                 userDisplayName: userDisplayName,
                                 userCategory: categorizeUser(normalizedFinalUser, row.Aantal),
                                 productCategory: categorizeProduct(row.Product),
                                 hasValidDate: !!date,
                                 hasValidUser: !!normalizedFinalUser && normalizedFinalUser !== 'Unknown',
                                 completeness: calculateCompleteness(row),
-                                // Additional fields for debugging/transparency
                                 regIsLeverancier: regIsLeverancier,
                                 regEqualsVe: normalizedRegUser === normalizedVeUser,
                                 processingRule: 
@@ -1391,30 +1005,20 @@
 
                         console.log('Processed data length:', processedData.length);
                         
-                        // Debug: Show processing statistics
-                        const processingStats = {
-                            regVeSame: processedData.filter(d => d.processingRule === 'REG_VE_SAME').length,
-                            regLeverancierToVe: processedData.filter(d => d.processingRule === 'REG_LEVERANCIER_TO_VE').length,
-                            useVe: processedData.filter(d => d.processingRule === 'USE_VE').length,
-                            useReg: processedData.filter(d => d.processingRule === 'USE_REG').length
-                        };
-                        
-                        console.log('Processing rules applied:', processingStats);
-
                         setData(processedData);
                         setFilteredData(processedData);
 
                         const allEnvironments = _.uniq(processedData.map(d => d.Environment)).filter(Boolean);
                         const allInsurers = _.uniq(processedData.map(d => d.Insurer)).filter(Boolean).sort();
                         const allProducts = _.uniq(processedData.map(d => d.Product)).filter(Boolean).sort();
-                        const allUsers = _.uniq(processedData.map(d => d.userDisplayName)).filter(Boolean).sort();
+                        const allGebruikers = _.uniq(processedData.map(d => d.userDisplayName)).filter(Boolean).sort();
                         const allYears = _.uniq(processedData.filter(d => d.YyyyMm).map(d => d.YyyyMm.getFullYear())).sort().reverse();
 
                         setUniqueValues({
                             environments: allEnvironments,
                             insurers: allInsurers,
                             products: allProducts,
-                            gebruikers: allUsers,
+                            gebruikers: allGebruikers,
                             years: allYears,
                             months: [
                                 { value: 1, label: 'Januari' },
@@ -1444,16 +1048,14 @@
                     }
                 };
 
-                // Get filtered products based on selected insurers
+                // Get filtered products
                 const getFilteredProducts = () => {
                     let baseData = data;
                     
-                    // Apply insurer filter if active
                     if (filters.insurer.length > 0) {
                         baseData = baseData.filter(d => filters.insurer.includes(d.Insurer));
                     }
                     
-                    // Apply other filters for context
                     if (filters.environment.length > 0) {
                         baseData = baseData.filter(d => filters.environment.includes(d.Environment));
                     }
@@ -1470,21 +1072,18 @@
                     return products;
                 };
 
-                // Get filtered users based on selected insurers and products
+                // Get filtered users
                 const getFilteredGebruikers = () => {
                     let baseData = data;
                     
-                    // Apply insurer filter if active
                     if (filters.insurer.length > 0) {
                         baseData = baseData.filter(d => filters.insurer.includes(d.Insurer));
                     }
                     
-                    // Apply product filter if active
                     if (filters.product.length > 0) {
                         baseData = baseData.filter(d => filters.product.includes(d.Product));
                     }
                     
-                    // Apply date filters if active
                     if (filters.selectedYear !== 'all') {
                         baseData = baseData.filter(d => d.YyyyMm && d.YyyyMm.getFullYear() === parseInt(filters.selectedYear));
                     }
@@ -1493,12 +1092,10 @@
                         baseData = baseData.filter(d => d.YyyyMm && (d.YyyyMm.getMonth() + 1) === parseInt(filters.selectedMonth));
                     }
                     
-                    // Apply environment filter if active
                     if (filters.environment.length > 0) {
                         baseData = baseData.filter(d => filters.environment.includes(d.Environment));
                     }
                     
-                    // Return all unique users from the filtered data
                     const availableUsers = _.uniq(baseData.map(d => d.userDisplayName)).filter(Boolean).sort();
                     return availableUsers;
                 };
@@ -1546,7 +1143,6 @@
                 // Statistics
                 const stats = useMemo(() => {
                     const totalRequests = filteredData.reduce((sum, d) => sum + d.Aantal, 0);
-                    // Use normalized user names for unique count
                     const uniqueUsers = _.uniq(filteredData.map(d => d.normalizedUser)).filter(u => u !== 'Unknown').length;
                     const uniqueProducts = _.uniq(filteredData.map(d => d.Product)).length;
                     const uniqueInsurers = _.uniq(filteredData.map(d => d.Insurer)).length;
@@ -1615,7 +1211,6 @@
                 };
 
                 const getUserData = () => {
-                    // Group by normalized user display name to combine similar entries
                     const grouped = _.groupBy(filteredData, 'userDisplayName');
                     return Object.entries(grouped)
                         .map(([user, records]) => ({
@@ -1623,7 +1218,6 @@
                             fullUser: user,
                             requests: records.reduce((sum, r) => sum + r.Aantal, 0),
                             records: records.length,
-                            // Add additional info for tooltip
                             originalUsers: _.uniq(records.map(r => r.actualUser)).join(', ')
                         }))
                         .sort((a, b) => b.requests - a.requests)
@@ -1654,12 +1248,6 @@
                         return newFilters;
                     });
                 };
-
-                // Load saved view function
-                const loadSavedView = useCallback((savedFilters) => {
-                    setFilters(savedFilters);
-                    addNotification('success', 'View geladen');
-                }, []);
 
                 // File upload component
                 const FileUploadArea = () => {
@@ -1836,17 +1424,7 @@
                                                 className: `p-2 rounded-lg ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'} transition-colors`
                                             },
                                             darkMode ? e(Sun, { className: 'w-5 h-5' }) : e(Moon, { className: 'w-5 h-5' })
-                                        ),
-                                        e(ExportReportingPanel, {
-                                            key: 'export',
-                                            data: data,
-                                            filteredData: filteredData,
-                                            stats: stats,
-                                            darkMode: darkMode,
-                                            filters: filters,
-                                            onLoadView: loadSavedView,
-                                            addNotification: addNotification
-                                        })
+                                        )
                                     ])
                                 ])
                             ),
@@ -1856,7 +1434,7 @@
                                 [
                                     e('div', { key: 'filter-header', className: 'flex items-center gap-2 mb-4' }, [
                                         e(Filter, { className: 'w-5 h-5 text-gray-600' }),
-                                        e('h2', { className: 'text-lg font-semibold' }, 'Geavanceerde Filters')
+                                        e('h2', { className: 'text-lg font-semibold' }, 'Filters')
                                     ]),
                                     e('div', { key: 'filter-content', className: 'space-y-4' }, [
                                         e('div', { className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4' }, [
@@ -1902,22 +1480,26 @@
                                                 })
                                             ]),
 
-                                            e('div', { key: 'user-filter' }, [
-                                                e('label', { className: 'block text-sm font-medium mb-2 flex items-center gap-2' }, [
-                                                    e(User, { className: 'w-4 h-4' }),
-                                                    'Gebruiker'
-                                                ]),
-                                                e(MultiSelectDropdown, {
-                                                    options: getFilteredGebruikers(),
-                                                    selectedValues: filters.gebruiker,
-                                                    onToggle: (value) => handleMultiSelectFilter('gebruiker', value),
-                                                    placeholder: 'Selecteer gebruikers...',
-                                                    darkMode: darkMode,
-                                                    searchTerm: searchTerms.gebruiker,
-                                                    onSearchChange: (term) => setSearchTerms(prev => ({ ...prev, gebruiker: term })),
-                                                    showSearch: true,
-                                                    maxHeight: '250px'
-                                                })
+                                            e('div', { key: 'gebruiker-filter' }, [
+                                                e('label', { className: 'block text-sm font-medium mb-2' }, 'Gebruiker'),
+                                                e('div', { className: 'space-y-2' }, [
+                                                    e(MultiSelectDropdown, {
+                                                        key: 'dropdown',
+                                                        options: getFilteredGebruikers(),
+                                                        selectedValues: filters.gebruiker,
+                                                        onToggle: (value) => handleMultiSelectFilter('gebruiker', value),
+                                                        placeholder: 'Selecteer gebruikers...',
+                                                        darkMode: darkMode,
+                                                        searchTerm: searchTerms.gebruiker,
+                                                        onSearchChange: (term) => setSearchTerms(prev => ({ ...prev, gebruiker: term })),
+                                                        showSearch: true,
+                                                        maxHeight: '300px'
+                                                    }),
+                                                    e('div', { 
+                                                        key: 'info',
+                                                        className: 'text-xs p-2 bg-blue-50 border border-blue-200 rounded text-blue-700'
+                                                    }, `${getFilteredGebruikers().length} gebruikers beschikbaar`)
+                                                ])
                                             ]),
 
                                             e('div', { key: 'date-filters', className: 'space-y-3' }, [
@@ -1950,20 +1532,6 @@
                                                             e('option', { key: month.value, value: month.value.toString() }, month.label)
                                                         )
                                                     ])
-                                                ])
-                                            ])
-                                        ]),
-                                        
-                                        e('div', { key: 'user-legend', className: 'mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200' }, [
-                                            e('h4', { className: 'text-sm font-semibold text-blue-800 mb-2' }, 'Gebruiker Legenda:'),
-                                            e('div', { className: 'flex flex-wrap gap-4 text-xs' }, [
-                                                e('div', { key: 'reg', className: 'flex items-center gap-2' }, [
-                                                    e('span', { className: 'px-2 py-1 bg-blue-100 text-blue-800 rounded' }, '(Reg)'),
-                                                    e('span', { className: 'text-blue-700' }, 'Reguliere gebruiker uit "Gebruiker" veld')
-                                                ]),
-                                                e('div', { key: 've', className: 'flex items-center gap-2' }, [
-                                                    e('span', { className: 'px-2 py-1 bg-green-100 text-green-800 rounded' }, '(VE)'),
-                                                    e('span', { className: 'text-green-700' }, 'VE gebruiker uit "GebruikerVe" veld')
                                                 ])
                                             ])
                                         ])
@@ -2094,20 +1662,9 @@
                             e('div', 
                                 { key: 'users', className: `${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6 mb-6` },
                                 [
-                                    e('h3', { key: 'title', className: 'text-lg font-semibold mb-4 flex items-center gap-2' }, [
-                                        e(User, { className: 'w-5 h-5' }),
-                                        'Top 15 Gebruikers (Genormaliseerd & Gecombineerd)'
-                                    ]),
+                                    e('h3', { key: 'title', className: 'text-lg font-semibold mb-4' }, 'Top 15 Gebruikers'),
                                     e('div', { key: 'info', className: 'mb-4 p-3 bg-green-50 rounded-lg border border-green-200' }, [
-                                        e('p', { className: 'text-sm text-green-700 mb-2' }, [
-                                            e('strong', { key: 'bold' }, 'Gecorrigeerde Logica: '),
-                                            'Alle gebruikers zijn nu correct genormaliseerd en gecombineerd voor accurate analyse.'
-                                        ]),
-                                        e('div', { key: 'processing-info', className: 'text-xs text-green-600 mt-2' }, [
-                                            e('div', { key: 'rule1' }, '• Leverancier requests tellen onder de juiste eindgebruiker'),
-                                            e('div', { key: 'rule2' }, '• Duplicate REG/VE gebruikers zijn gecombineerd'),
-                                            e('div', { key: 'rule3' }, '• Bedrijfsnamen zijn genormaliseerd (zonder nummers)')
-                                        ])
+                                        e('p', { className: 'text-sm text-green-700' }, 'Eén logische filter voor alle gebruikers - reguliere gebruikers en leveranciers samen.')
                                     ]),
                                     e(SimpleBarChart, { 
                                         key: 'chart',
@@ -2141,7 +1698,7 @@
                                         e('span', { key: 'sep1' }, '•'),
                                         e('span', { key: 'records' }, `${filteredData.length.toLocaleString()} van ${data.length.toLocaleString()} records`),
                                         e('span', { key: 'sep2' }, '•'),
-                                        e('span', { key: 'version' }, 'v2.1')
+                                        e('span', { key: 'version' }, 'v3.0 - Vereenvoudigd')
                                     ])
                                 ])
                             )
@@ -2153,7 +1710,6 @@
             render(e(IpcAnalysisTool), document.getElementById('root'));
         }
 
-        // Start initialization when DOM is ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initApp);
         } else {
