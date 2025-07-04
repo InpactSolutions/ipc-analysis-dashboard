@@ -1103,8 +1103,23 @@
                     }
                     
                     if (filters.leverancier.length > 0) {
-                        // When leveranciers are selected, don't show regular users as they're mutually exclusive
-                        return [];
+                        // When leveranciers are selected, show VE users associated with those leveranciers
+                        const selectedLeverancierNames = filters.leverancier.map(name => name.replace(' (Reg)', '').replace(' (VE)', ''));
+                        
+                        // Find all data where a leverancier is selected in the regular user field
+                        const leverancierData = data.filter(d => {
+                            const regUserNormalized = normalizeUserName(d.originalRegUser);
+                            return selectedLeverancierNames.some(leverancier => 
+                                leverancier.includes(regUserNormalized) || regUserNormalized.includes(leverancier.split(' (')[0])
+                            );
+                        });
+                        
+                        // Get VE users from these records
+                        const veUsers = leverancierData
+                            .filter(d => d.originalVeUser && d.originalVeUser !== '(geen VE_MYAAND)' && d.originalVeUser.trim() !== '' && d.originalVeUser !== 'NULL')
+                            .map(d => `${normalizeUserName(d.originalVeUser)} (VE)`);
+                        
+                        return _.uniq(veUsers).filter(Boolean).sort();
                     }
                     
                     if (filters.selectedYear !== 'all') {
