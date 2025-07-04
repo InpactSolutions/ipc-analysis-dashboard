@@ -1428,7 +1428,7 @@
                     return users;
                 };
 
-                // Get VE users linked to selected leveranciers
+                // Get VE users linked to selected leveranciers based on actual data
                 const getLinkedVEUsers = () => {
                     if (filters.leverancier.length === 0) {
                         return [];
@@ -1439,7 +1439,7 @@
                         leverancier.replace(/\s+\((REG|VE)\)$/, '')
                     );
                     
-                    // Find all VE users that are linked to these leveranciers
+                    // Find all VE users that are actually linked to these leveranciers in the data
                     const linkedVEUsers = data.filter(d => {
                         // Check if this is a VE user
                         if (d.userSource !== 'GebruikerVe') return false;
@@ -1449,7 +1449,67 @@
                         return selectedLeverancierNames.includes(normalizedName);
                     });
                     
-                    return _.uniq(linkedVEUsers.map(d => d.userDisplayName)).filter(Boolean).sort();
+                    // Only return VE users that actually exist in the data
+                    const availableVEUsers = _.uniq(linkedVEUsers.map(d => d.userDisplayName)).filter(Boolean);
+                    
+                    // Also apply other active filters to show only relevant VE users
+                    let filteredVEUsers = linkedVEUsers;
+                    
+                    // Apply environment filter if active
+                    if (filters.environment.length > 0) {
+                        filteredVEUsers = filteredVEUsers.filter(d => filters.environment.includes(d.Environment));
+                    }
+                    
+                    // Apply insurer filter if active
+                    if (filters.insurer.length > 0) {
+                        filteredVEUsers = filteredVEUsers.filter(d => filters.insurer.includes(d.Insurer));
+                    }
+                    
+                    // Apply product filter if active
+                    if (filters.product.length > 0) {
+                        filteredVEUsers = filteredVEUsers.filter(d => filters.product.includes(d.Product));
+                    }
+                    
+                    // Apply date filters if active
+                    if (filters.selectedYear !== 'all') {
+                        filteredVEUsers = filteredVEUsers.filter(d => d.YyyyMm && d.YyyyMm.getFullYear() === parseInt(filters.selectedYear));
+                    }
+                    
+                    if (filters.selectedMonth !== 'all') {
+                        filteredVEUsers = filteredVEUsers.filter(d => d.YyyyMm && (d.YyyyMm.getMonth() + 1) === parseInt(filters.selectedMonth));
+                    }
+                    
+                    // Return only VE users that exist in the filtered data
+                    const contextualVEUsers = _.uniq(filteredVEUsers.map(d => d.userDisplayName)).filter(Boolean).sort();
+                    
+                    return contextualVEUsers;
+                };
+
+                // Get statistics for selected leverancier and their VE users
+                const getLeverancierVEStats = () => {
+                    if (filters.leverancier.length === 0) {
+                        return null;
+                    }
+                    
+                    const selectedLeverancierNames = filters.leverancier.map(leverancier => 
+                        leverancier.replace(/\s+\((REG|VE)\)$/, '')
+                    );
+                    
+                    const leverancierData = data.filter(d => 
+                        selectedLeverancierNames.includes(d.normalizedUser)
+                    );
+                    
+                    const regData = leverancierData.filter(d => d.userSource === 'Gebruiker');
+                    const veData = leverancierData.filter(d => d.userSource === 'GebruikerVe');
+                    
+                    return {
+                        totalRecords: leverancierData.length,
+                        regRecords: regData.length,
+                        veRecords: veData.length,
+                        regRequests: regData.reduce((sum, d) => sum + d.Aantal, 0),
+                        veRequests: veData.reduce((sum, d) => sum + d.Aantal, 0),
+                        availableVEUsers: _.uniq(veData.map(d => d.userDisplayName)).length
+                    };
                 };
 
                 // Notification system
@@ -2109,10 +2169,17 @@
                                         'Top 15 Gebruikers (Genormaliseerd & Gecombineerd)'
                                     ]),
                                     e('div', { key: 'info', className: 'mb-4 p-3 bg-green-50 rounded-lg border border-green-200' }, [
-                                        e('p', { className: 'text-sm text-green-700' }, [
+                                        e('p', { className: 'text-sm text-green-700 mb-2' }, [
                                             e('strong', { key: 'bold' }, 'Automatische Combinatie: '),
-                                            'Gebruikers met gelijkaardige namen (zoals "AWI B.V." en "AWI B.V. 120959") worden automatisch samengevoegd voor een overzichtelijkere analyse.'
-                                        ])
+                                            'Gebruikers met gelijkaardige namen worden automatisch samengevoegd voor een overzichtelijkere analyse.'
+                                        ]),
+                                        filters.leverancier.length > 0 && (() => {
+                                            const stats = getLeverancierVEStats();
+                                            return stats && e('div', { key: 'leverage-stats', className: 'text-xs text-green-600 mt-2 p-2 bg-green-100 rounded' }, [
+                                                e('div', { key: 'title', className: 'font-semibold' }, 'Geselecteerde Leverancier Statistieken:'),
+                                                e('div', { key: 'stats' }, `${stats.regRecords} REG records (${stats.regRequests.toLocaleString()} requests) • ${stats.veRecords} VE records (${stats.veRequests.toLocaleString()} requests) • ${stats.availableVEUsers} unieke VE gebruikers`)
+                                            ]);
+                                        })()
                                     ]),
                                     e(SimpleBarChart, { 
                                         key: 'chart',
