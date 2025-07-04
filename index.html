@@ -1213,36 +1213,35 @@
                         filtered = filtered.filter(d => filters.product.includes(d.Product));
                     }
                     
-                    // Handle user and leverancier filters - they work together, not exclusively
-                    if (filters.gebruiker.length > 0 || filters.leverancier.length > 0) {
+                    // Handle user and leverancier filters
+                    if (filters.gebruiker.length > 0 && filters.leverancier.length > 0) {
+                        // When both filters are active, show records where the leverancier-VE user combination exists
                         filtered = filtered.filter(d => {
-                            let matchesUser = false;
-                            let matchesLeverancier = false;
+                            // Check if this record has the selected leverancier in reg field AND selected VE user
+                            const selectedLeverancierNames = filters.leverancier.map(name => name.replace(' (Reg)', '').replace(' (VE)', ''));
+                            const selectedVeUserNames = filters.gebruiker.map(name => name.replace(' (Reg)', '').replace(' (VE)', ''));
                             
-                            if (filters.gebruiker.length > 0) {
-                                matchesUser = filters.gebruiker.includes(d.userDisplayName);
-                            }
+                            // Check if this record has a leverancier in the reg field
+                            const regUserNormalized = normalizeUserName(d.originalRegUser);
+                            const hasSelectedLeverancier = selectedLeverancierNames.some(leverancier => 
+                                leverancier.includes(regUserNormalized) || regUserNormalized.includes(leverancier.split(' (')[0])
+                            );
                             
-                            if (filters.leverancier.length > 0) {
-                                matchesLeverancier = filters.leverancier.includes(d.userDisplayName);
-                            }
+                            // Check if this record has a selected VE user
+                            const veUserNormalized = d.originalVeUser ? normalizeUserName(d.originalVeUser) : null;
+                            const hasSelectedVeUser = veUserNormalized && selectedVeUserNames.some(user => 
+                                user.includes(veUserNormalized) || veUserNormalized.includes(user)
+                            );
                             
-                            // If both filters are active, show records that match either
-                            if (filters.gebruiker.length > 0 && filters.leverancier.length > 0) {
-                                return matchesUser || matchesLeverancier;
-                            }
-                            
-                            // If only one filter is active, show records that match that filter
-                            if (filters.gebruiker.length > 0) {
-                                return matchesUser;
-                            }
-                            
-                            if (filters.leverancier.length > 0) {
-                                return matchesLeverancier;
-                            }
-                            
-                            return false;
+                            // Only show records where BOTH the leverancier AND VE user are present in the same record
+                            return hasSelectedLeverancier && hasSelectedVeUser;
                         });
+                    } else if (filters.gebruiker.length > 0) {
+                        // Only user filter active
+                        filtered = filtered.filter(d => filters.gebruiker.includes(d.userDisplayName));
+                    } else if (filters.leverancier.length > 0) {
+                        // Only leverancier filter active
+                        filtered = filtered.filter(d => filters.leverancier.includes(d.userDisplayName));
                     }
 
                     if (filters.selectedYear !== 'all') {
