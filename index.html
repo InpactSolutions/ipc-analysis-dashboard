@@ -1012,16 +1012,18 @@
                 };
 
                 const generateCSVExport = () => {
-                    const csvHeaders = ['Environment', 'YyyyMm', 'Insurer', 'Product', 'Gebruiker_Genormaliseerd', 'Gebruiker_Origineel', 'Bron', 'IsLeverancier', 'Aantal'];
+                    const csvHeaders = ['Environment', 'YyyyMm', 'Insurer', 'Product', 'FinalUser', 'OriginalRegUser', 'OriginalVeUser', 'UserSource', 'IsLeverancier', 'ProcessingRule', 'Aantal'];
                     const csvRows = filteredData.map(row => [
                         row.Environment,
                         row.YyyyMm ? row.YyyyMm.toISOString().split('T')[0] : '',
                         row.Insurer,
                         row.Product,
                         row.normalizedUser,
-                        row.actualUser,
+                        row.originalRegUser,
+                        row.originalVeUser || '',
                         row.userSource,
                         row.isLeverancier ? 'Ja' : 'Nee',
+                        row.processingRule,
                         row.Aantal
                     ]);
                     
@@ -1033,11 +1035,11 @@
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.href = url;
-                    link.download = `IPC_Data_Cascading_${new Date().toISOString().split('T')[0]}.csv`;
+                    link.download = `IPC_Data_Corrected_Logic_${new Date().toISOString().split('T')[0]}.csv`;
                     link.click();
                     URL.revokeObjectURL(url);
                     
-                    addNotification('success', 'CSV bestand met cascading filters gedownload');
+                    addNotification('success', 'CSV bestand met gecorrigeerde logica gedownload');
                 };
 
                 if (!isOpen) {
@@ -1310,26 +1312,57 @@
                             const date = row.YyyyMm ? new Date(row.YyyyMm) : null;
                             const monthNames = ['Jan', 'Feb', 'Mrt', 'Apr', 'Mei', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
                             
-                            // Smart user combination logic with normalization
+                            // Smart user combination logic with correct leverancier handling
                             let actualUser = row.Gebruiker;
                             let userSource = 'Gebruiker';
+                            let finalUser = actualUser;
+                            let isLeverancierRow = false;
                             
-                            // If GebruikerVe exists and is not empty/null/placeholder, use it
+                            // Normalize both REG and VE users
+                            const normalizedRegUser = normalizeUserName(actualUser);
+                            const normalizedVeUser = row.GebruikerVe ? normalizeUserName(row.GebruikerVe) : null;
+                            
+                            // Check if REG user is a leverancier
+                            const regIsLeverancier = isLeverancier(normalizedRegUser);
+                            
+                            // Logic for determining the final user and source
                             if (row.GebruikerVe && 
                                 row.GebruikerVe !== '(geen VE_MYAAND)' && 
                                 row.GebruikerVe.trim() !== '' && 
                                 row.GebruikerVe !== 'NULL') {
-                                actualUser = row.GebruikerVe;
-                                userSource = 'GebruikerVe';
+                                
+                                // Case 1: REG and VE are the same (normalized) → count as 1 user, use original source
+                                if (normalizedRegUser === normalizedVeUser) {
+                                    finalUser = actualUser; // Use REG user
+                                    userSource = 'Gebruiker'; // Keep as REG
+                                    isLeverancierRow = regIsLeverancier;
+                                }
+                                // Case 2: REG is leverancier → requests count under VE user
+                                else if (regIsLeverancier) {
+                                    finalUser = row.GebruikerVe; // Use VE user
+                                    userSource = 'GebruikerVe'; // Mark as VE
+                                    isLeverancierRow = false; // This row counts as regular user, not leverancier
+                                }
+                                // Case 3: REG is not leverancier and different from VE → use VE
+                                else {
+                                    finalUser = row.GebruikerVe;
+                                    userSource = 'GebruikerVe';
+                                    isLeverancierRow = false;
+                                }
+                            } else {
+                                // No VE user, use REG user
+                                finalUser = actualUser;
+                                userSource = 'Gebruiker';
+                                isLeverancierRow = regIsLeverancier;
                             }
                             
-                            // Normalize the user name to combine similar entries
-                            const normalizedUser = normalizeUserName(actualUser);
+                            // Normalize the final user
+                            const normalizedFinalUser = normalizeUserName(finalUser);
                             
-                            // Create display name showing source (but use normalized name)
+                            // Create display name
                             const userDisplayName = userSource === 'GebruikerVe' ? 
-                                `${normalizedUser} (VE)` : 
-                                `${normalizedUser} (Reg)`;
+                                `${normalizedFinalUser} (VE)` : 
+                                `${normalizedFinalUser} (Reg)`;
                             
                             return {
                                 ...row,
@@ -1339,20 +1372,39 @@
                                 month: date ? `${monthNames[date.getMonth()]} ${date.getFullYear()}` : 'Onbekend',
                                 monthKey: date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}` : 'unknown',
                                 year: date ? date.getFullYear() : 'Onbekend',
-                                actualUser: actualUser, // Keep original for reference
-                                normalizedUser: normalizedUser, // Add normalized version
-                                isLeverancier: isLeverancier(normalizedUser), // Flag if this is a leverancier
-                                userSource: userSource,
-                                userDisplayName: userDisplayName, // This now uses normalized name
-                                userCategory: categorizeUser(normalizedUser, row.Aantal),
+                                actualUser: finalUser, // The user this row counts under
+                                originalRegUser: row.Gebruiker, // Keep original for reference
+                                originalVeUser: row.GebruikerVe, // Keep original for reference
+                                normalizedUser: normalizedFinalUser,
+                                isLeverancier: isLeverancierRow, // Whether this row counts as leverancier
+                                userSource: userSource, // Source of the final user
+                                userDisplayName: userDisplayName,
+                                userCategory: categorizeUser(normalizedFinalUser, row.Aantal),
                                 productCategory: categorizeProduct(row.Product),
                                 hasValidDate: !!date,
-                                hasValidUser: !!normalizedUser && normalizedUser !== 'Unknown',
-                                completeness: calculateCompleteness(row)
+                                hasValidUser: !!normalizedFinalUser && normalizedFinalUser !== 'Unknown',
+                                completeness: calculateCompleteness(row),
+                                // Additional fields for debugging/transparency
+                                regIsLeverancier: regIsLeverancier,
+                                regEqualsVe: normalizedRegUser === normalizedVeUser,
+                                processingRule: 
+                                    normalizedRegUser === normalizedVeUser ? 'REG_VE_SAME' :
+                                    regIsLeverancier ? 'REG_LEVERANCIER_TO_VE' :
+                                    userSource === 'GebruikerVe' ? 'USE_VE' : 'USE_REG'
                             };
                         });
 
                         console.log('Processed data length:', processedData.length);
+                        
+                        // Debug: Show processing statistics
+                        const processingStats = {
+                            regVeSame: processedData.filter(d => d.processingRule === 'REG_VE_SAME').length,
+                            regLeverancierToVe: processedData.filter(d => d.processingRule === 'REG_LEVERANCIER_TO_VE').length,
+                            useVe: processedData.filter(d => d.processingRule === 'USE_VE').length,
+                            useReg: processedData.filter(d => d.processingRule === 'USE_REG').length
+                        };
+                        
+                        console.log('Processing rules applied:', processingStats);
 
                         setData(processedData);
                         setFilteredData(processedData);
@@ -1360,9 +1412,13 @@
                         const allEnvironments = _.uniq(processedData.map(d => d.Environment)).filter(Boolean);
                         const allInsurers = _.uniq(processedData.map(d => d.Insurer)).filter(Boolean).sort();
                         const allProducts = _.uniq(processedData.map(d => d.Product)).filter(Boolean).sort();
-                        // Separate regular users from leveranciers
+                        // Separate regular users from leveranciers based on final processing
                         const allUsers = _.uniq(processedData.filter(d => !d.isLeverancier).map(d => d.userDisplayName)).filter(Boolean).sort();
                         const allLeveranciers = _.uniq(processedData.filter(d => d.isLeverancier).map(d => d.userDisplayName)).filter(Boolean).sort();
+                        
+                        console.log('Final user categories:');
+                        console.log('Regular users:', allUsers.length);
+                        console.log('Leveranciers:', allLeveranciers.length);
                         const allYears = _.uniq(processedData.filter(d => d.YyyyMm).map(d => d.YyyyMm.getFullYear())).sort().reverse();
 
                         setUniqueValues({
@@ -2170,8 +2226,13 @@
                                     ]),
                                     e('div', { key: 'info', className: 'mb-4 p-3 bg-green-50 rounded-lg border border-green-200' }, [
                                         e('p', { className: 'text-sm text-green-700 mb-2' }, [
-                                            e('strong', { key: 'bold' }, 'Automatische Combinatie: '),
-                                            'Gebruikers met gelijkaardige namen worden automatisch samengevoegd voor een overzichtelijkere analyse.'
+                                            e('strong', { key: 'bold' }, 'Gecorrigeerde Logica: '),
+                                            'Requests van leveranciers tellen nu correct onder de VE gebruiker. REG=VE op zelfde rij telt als 1 gebruiker.'
+                                        ]),
+                                        e('div', { key: 'processing-info', className: 'text-xs text-green-600 mt-2' }, [
+                                            e('div', { key: 'rule1' }, '• REG = VE op zelfde rij → telt als 1 gebruiker (REG)'),
+                                            e('div', { key: 'rule2' }, '• REG is leverancier → requests tellen onder VE gebruiker'),
+                                            e('div', { key: 'rule3' }, '• REG ≠ VE en REG geen leverancier → gebruik VE gebruiker')
                                         ]),
                                         filters.leverancier.length > 0 && (() => {
                                             const stats = getLeverancierVEStats();
