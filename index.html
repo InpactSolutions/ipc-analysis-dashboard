@@ -1070,6 +1070,14 @@
                         baseData = baseData.filter(d => filters.environment.includes(d.Environment));
                     }
                     
+                    if (filters.gebruiker.length > 0) {
+                        baseData = baseData.filter(d => filters.gebruiker.includes(d.userDisplayName));
+                    }
+                    
+                    if (filters.leverancier.length > 0) {
+                        baseData = baseData.filter(d => filters.leverancier.includes(d.userDisplayName));
+                    }
+                    
                     if (filters.selectedYear !== 'all') {
                         baseData = baseData.filter(d => d.YyyyMm && d.YyyyMm.getFullYear() === parseInt(filters.selectedYear));
                     }
@@ -1092,6 +1100,11 @@
                     
                     if (filters.product.length > 0) {
                         baseData = baseData.filter(d => filters.product.includes(d.Product));
+                    }
+                    
+                    if (filters.leverancier.length > 0) {
+                        // When leveranciers are selected, don't show regular users as they're mutually exclusive
+                        return [];
                     }
                     
                     if (filters.selectedYear !== 'all') {
@@ -1120,6 +1133,11 @@
                     
                     if (filters.product.length > 0) {
                         baseData = baseData.filter(d => filters.product.includes(d.Product));
+                    }
+                    
+                    if (filters.gebruiker.length > 0) {
+                        // When regular users are selected, don't show leveranciers as they're mutually exclusive
+                        return [];
                     }
                     
                     if (filters.selectedYear !== 'all') {
