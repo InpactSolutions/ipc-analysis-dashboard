@@ -1012,13 +1012,15 @@
                 };
 
                 const generateCSVExport = () => {
-                    const csvHeaders = ['Environment', 'YyyyMm', 'Insurer', 'Product', 'Gebruiker', 'Aantal'];
+                    const csvHeaders = ['Environment', 'YyyyMm', 'Insurer', 'Product', 'Gebruiker_Genormaliseerd', 'Gebruiker_Origineel', 'Bron', 'Aantal'];
                     const csvRows = filteredData.map(row => [
                         row.Environment,
                         row.YyyyMm ? row.YyyyMm.toISOString().split('T')[0] : '',
                         row.Insurer,
                         row.Product,
+                        row.normalizedUser,
                         row.actualUser,
+                        row.userSource,
                         row.Aantal
                     ]);
                     
@@ -1030,11 +1032,11 @@
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.href = url;
-                    link.download = `IPC_Data_${new Date().toISOString().split('T')[0]}.csv`;
+                    link.download = `IPC_Data_Normalized_${new Date().toISOString().split('T')[0]}.csv`;
                     link.click();
                     URL.revokeObjectURL(url);
                     
-                    addNotification('success', 'CSV bestand gedownload');
+                    addNotification('success', 'CSV bestand met genormaliseerde gebruikers gedownload');
                 };
 
                 if (!isOpen) {
@@ -1198,6 +1200,36 @@
                 const fileInputRef = useRef(null);
 
                 // Helper functions
+                const normalizeUserName = (userName) => {
+                    if (!userName || userName === 'NULL') return 'Unknown';
+                    
+                    // Remove numbers and common suffixes from user names
+                    let normalized = userName.toString().trim();
+                    
+                    // Specific mappings for the requested companies
+                    const companyMappings = {
+                        'AWI B.V.': /^AWI B\.V\.(\s+\d+)?$/i,
+                        'CCS Testbedrijf 1': /^CCS Testbedrijf 1(\s+\d+)?$/i,
+                        'Fish testbedrijf1': /^Fish testbedrijf\d*(\s+\d+)?$/i,
+                        'SECTOR ORANGE B.V.': /^SECTOR ORANGE B\.V\.(\s+\d+)?$/i,
+                        'Volmachtbeheer B.V.': /^Volmachtbeheer B\.V\.(\s+\d+)?$/i
+                    };
+                    
+                    // Check if the username matches any of our specific patterns
+                    for (const [cleanName, pattern] of Object.entries(companyMappings)) {
+                        if (pattern.test(normalized)) {
+                            return cleanName;
+                        }
+                    }
+                    
+                    // General cleanup: remove trailing numbers and common patterns
+                    normalized = normalized
+                        .replace(/\s+\d+$/, '') // Remove trailing numbers
+                        .replace(/\s+$/, ''); // Remove trailing spaces
+                    
+                    return normalized;
+                };
+
                 const categorizeUser = (user, aantal) => {
                     if (!user || user === 'NULL') return 'Unknown';
                     if (aantal > 10000) return 'Enterprise';
@@ -1254,7 +1286,7 @@
                             const date = row.YyyyMm ? new Date(row.YyyyMm) : null;
                             const monthNames = ['Jan', 'Feb', 'Mrt', 'Apr', 'Mei', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
                             
-                            // Smart user combination logic
+                            // Smart user combination logic with normalization
                             let actualUser = row.Gebruiker;
                             let userSource = 'Gebruiker';
                             
@@ -1267,10 +1299,13 @@
                                 userSource = 'GebruikerVe';
                             }
                             
-                            // Create display name showing source
+                            // Normalize the user name to combine similar entries
+                            const normalizedUser = normalizeUserName(actualUser);
+                            
+                            // Create display name showing source (but use normalized name)
                             const userDisplayName = userSource === 'GebruikerVe' ? 
-                                `${actualUser} (VE)` : 
-                                `${actualUser} (Reg)`;
+                                `${normalizedUser} (VE)` : 
+                                `${normalizedUser} (Reg)`;
                             
                             return {
                                 ...row,
@@ -1280,13 +1315,14 @@
                                 month: date ? `${monthNames[date.getMonth()]} ${date.getFullYear()}` : 'Onbekend',
                                 monthKey: date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}` : 'unknown',
                                 year: date ? date.getFullYear() : 'Onbekend',
-                                actualUser: actualUser,
+                                actualUser: actualUser, // Keep original for reference
+                                normalizedUser: normalizedUser, // Add normalized version
                                 userSource: userSource,
-                                userDisplayName: userDisplayName,
-                                userCategory: categorizeUser(actualUser, row.Aantal),
+                                userDisplayName: userDisplayName, // This now uses normalized name
+                                userCategory: categorizeUser(normalizedUser, row.Aantal),
                                 productCategory: categorizeProduct(row.Product),
                                 hasValidDate: !!date,
-                                hasValidUser: !!actualUser && actualUser !== 'NULL',
+                                hasValidUser: !!normalizedUser && normalizedUser !== 'Unknown',
                                 completeness: calculateCompleteness(row)
                             };
                         });
@@ -1407,7 +1443,8 @@
                 // Statistics
                 const stats = useMemo(() => {
                     const totalRequests = filteredData.reduce((sum, d) => sum + d.Aantal, 0);
-                    const uniqueUsers = _.uniq(filteredData.map(d => d.actualUser)).length;
+                    // Use normalized user names for unique count
+                    const uniqueUsers = _.uniq(filteredData.map(d => d.normalizedUser)).filter(u => u !== 'Unknown').length;
                     const uniqueProducts = _.uniq(filteredData.map(d => d.Product)).length;
                     const uniqueInsurers = _.uniq(filteredData.map(d => d.Insurer)).length;
                     const avgPerMonth = filteredData.length > 0 ? Math.round(totalRequests / _.uniq(filteredData.map(d => d.month)).length) : 0;
@@ -1475,13 +1512,16 @@
                 };
 
                 const getUserData = () => {
+                    // Group by normalized user display name to combine similar entries
                     const grouped = _.groupBy(filteredData, 'userDisplayName');
                     return Object.entries(grouped)
                         .map(([user, records]) => ({
                             user: user.length > 30 ? user.substring(0, 30) + '...' : user,
                             fullUser: user,
                             requests: records.reduce((sum, r) => sum + r.Aantal, 0),
-                            records: records.length
+                            records: records.length,
+                            // Add additional info for tooltip
+                            originalUsers: _.uniq(records.map(r => r.actualUser)).join(', ')
                         }))
                         .sort((a, b) => b.requests - a.requests)
                         .slice(0, 15);
@@ -1962,7 +2002,13 @@
                                 [
                                     e('h3', { key: 'title', className: 'text-lg font-semibold mb-4 flex items-center gap-2' }, [
                                         e(User, { className: 'w-5 h-5' }),
-                                        'Top 15 Gebruikers (Combinatie van Gebruiker en GebruikerVe)'
+                                        'Top 15 Gebruikers (Genormaliseerd & Gecombineerd)'
+                                    ]),
+                                    e('div', { key: 'info', className: 'mb-4 p-3 bg-green-50 rounded-lg border border-green-200' }, [
+                                        e('p', { className: 'text-sm text-green-700' }, [
+                                            e('strong', { key: 'bold' }, 'Automatische Combinatie: '),
+                                            'Gebruikers met gelijkaardige namen (zoals "AWI B.V." en "AWI B.V. 120959") worden automatisch samengevoegd voor een overzichtelijkere analyse.'
+                                        ])
                                     ]),
                                     e(SimpleBarChart, { 
                                         key: 'chart',
